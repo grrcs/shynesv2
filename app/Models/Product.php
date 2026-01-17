@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Product extends Model
+{
+    use HasFactory;
+
+    /**
+     * fillable
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'category_id',
+        'image',
+        'title',
+        'slug',
+        'description',
+        'price',
+        'stock',
+        'weight',
+        'link_shopee',
+        'status',
+    ];
+
+    /**
+     * Relasi: Setiap produk punya satu kategori.
+     */
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+}
