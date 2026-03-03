@@ -35,4 +35,31 @@ class Order extends Model
     {
         return $this->belongsTo(PaymentOption::class);
     }
+
+    public function statusHistory()
+    {
+        return $this->hasMany(OrderStatusHistory::class)->orderBy('changed_at', 'desc');
+    }
+
+    public function shippingDetail()
+    {
+        return $this->hasOne(ShippingDetail::class);
+    }
+
+    public function getCurrentStatusAttribute()
+    {
+        $latestStatus = $this->statusHistory()->first();
+        return $latestStatus ? $latestStatus->status : $this->status;
+    }
+
+    public function updateStatus(string $newStatus, string $notes = null)
+    {
+        $this->update(['status' => $newStatus]);
+        
+        return $this->statusHistory()->create([
+            'status' => $newStatus,
+            'notes' => $notes,
+            'changed_at' => now(),
+        ]);
+    }
 }

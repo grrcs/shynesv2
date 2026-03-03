@@ -40,6 +40,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/orders/checkout', [App\Http\Controllers\OrderController::class, 'checkout'])->name('orders.checkout');
     Route::resource('/orders', App\Http\Controllers\OrderController::class);
     Route::patch('/orders/{id}/status', [App\Http\Controllers\OrderController::class, 'updateStatus'])->name('orders.updateStatus');
+    Route::get('/orders/{id}/track', [App\Http\Controllers\OrderController::class, 'track'])->name('orders.track');
+    Route::patch('/orders/{id}/shipping', [App\Http\Controllers\OrderController::class, 'updateShipping'])->name('orders.updateShipping');
+    Route::get('/orders/{id}/courier-status', [App\Http\Controllers\OrderController::class, 'checkCourierStatus'])->name('orders.courierStatus');
     
     // Review & Comment Routes
     Route::post('/reviews', [App\Http\Controllers\ReviewController::class, 'store'])->name('reviews.store');
@@ -68,6 +71,17 @@ Route::middleware(['auth'])->group(function () {
         'edit' => 'admin.payment-options.edit',
         'update' => 'admin.payment-options.update',
         'destroy' => 'admin.payment-options.destroy',
+    ]);
+
+    // Admin Coupon Routes
+    Route::resource('/admin/coupons', App\Http\Controllers\Admin\CouponController::class)->names([
+        'index' => 'admin.coupons.index',
+        'create' => 'admin.coupons.create',
+        'store' => 'admin.coupons.store',
+        'show' => 'admin.coupons.show',
+        'edit' => 'admin.coupons.edit',
+        'update' => 'admin.coupons.update',
+        'destroy' => 'admin.coupons.destroy',
     ]);
 
     // Buyer Payment Options Routes
