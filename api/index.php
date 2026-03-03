@@ -1,14 +1,20 @@
 <?php
 
-// 1. Definisikan path dasar
+// 1. Tampilkan Error (Hanya untuk Debugging)
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// 2. Definisikan path dasar
 $basePath = realpath(__DIR__ . '/../');
 
-// 2. Siapkan folder Storage di /tmp (hanya untuk Vercel)
-if (isset($_SERVER['VERCEL'])) {
+// 3. Siapkan folder Storage di /tmp (Hanya untuk Vercel)
+if (isset($_SERVER['VERCEL']) || env('VERCEL')) {
     $storagePath = '/tmp/storage';
     $folders = [
         $storagePath . '/framework/views',
         $storagePath . '/framework/cache',
+        $storagePath . '/framework/cache/data',
         $storagePath . '/framework/sessions',
         $storagePath . '/logs',
     ];
@@ -18,10 +24,14 @@ if (isset($_SERVER['VERCEL'])) {
             mkdir($folder, 0755, true);
         }
     }
+
+    // Paksa Laravel menggunakan path ini
+    putenv('APP_STORAGE=' . $storagePath);
+    putenv('VIEW_COMPILED_PATH=' . $storagePath . '/framework/views');
+    putenv('FRAMEWORK_CACHE_PATH=' . $storagePath . '/framework/cache');
 }
 
-// 3. MATIKAN SEMUA CACHE FILES LOKAL (Sangat Penting untuk fix 'view' error)
-// File ini tidak boleh terbawa ke Vercel
+// 4. MATIKAN SEMUA CACHE FILES LOKAL
 $cacheFiles = [
     $basePath . '/bootstrap/cache/config.php',
     $basePath . '/bootstrap/cache/routes.php',
@@ -35,5 +45,5 @@ foreach ($cacheFiles as $file) {
     }
 }
 
-// 4. Jalankan aplikasi melalui index.php resmi
+// 5. Jalankan aplikasi melalu index.php resmi
 require $basePath . '/public/index.php';
