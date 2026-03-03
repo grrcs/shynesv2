@@ -34,12 +34,14 @@ class OrderController extends Controller
             return redirect()->route('products.index')->with('error', 'Keranjang belanja kosong!');
         }
         
+        $addresses = auth()->user()->addresses()->orderByDesc('is_primary')->latest()->get();
+        
         // Get active payment options
         $paymentOptions = \App\Models\PaymentOption::where('is_active', true)
             ->orderBy('name')
             ->get();
             
-        return view('checkout.payment-options', compact('cartItems', 'paymentOptions'));
+        return view('checkout.payment-options', compact('cartItems', 'paymentOptions', 'addresses'));
     }
 
     public function store(Request $request, CheckoutService $checkoutService)
