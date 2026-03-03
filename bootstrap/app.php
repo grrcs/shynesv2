@@ -14,5 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Illuminate\Http\Exceptions\PostTooLargeException $e, $request) {
+            return redirect()->back()->with('error', 'Ukuran file yang diupload terlalu besar! Silakan perkecil ukuran file atau tingkatkan batas upload di server.');
+        });
     })->create();
