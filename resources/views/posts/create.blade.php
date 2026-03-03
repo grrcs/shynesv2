@@ -23,8 +23,9 @@
                         <div>
                             <label class="block text-sm font-semibold text-secondary dark:text-gray-300 mb-2">Upload Gambar</label>
                             <div class="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-gray-600 transition-colors bg-transparent text-primary dark:text-white dark:bg-transparent">
-                                <input type="file" name="image" class="block w-full text-sm text-secondary dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-800 dark:file:bg-gray-800 dark:file:text-white cursor-pointer focus:outline-none">
+                                <input type="file" name="image" class="block w-full text-sm text-secondary dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-800 dark:file:bg-gray-800 dark:file:text-white cursor-pointer focus:outline-none" data-preview-container="#post-image-preview">
                             </div>
+                            <div id="post-image-preview" class="mt-2"></div>
                             @error('image') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
 

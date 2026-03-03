@@ -25,7 +25,8 @@
                     <img src="{{ Storage::url($banner->image) }}" class="w-full h-auto max-h-48 object-cover rounded-lg border border-gray-200 dark:border-gray-800">
                 </div>
                 <label class="block text-sm font-bold text-secondary dark:text-gray-300 mb-2">Ganti Gambar (Opsional)</label>
-                <input type="file" name="image" accept="image/*" class="block w-full text-sm text-secondary dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-800 dark:file:bg-gray-800 dark:file:text-white cursor-pointer focus:outline-none">
+                <input type="file" name="image" accept="image/*" class="block w-full text-sm text-secondary dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-800 dark:file:bg-gray-800 dark:file:text-white cursor-pointer focus:outline-none" data-preview-container="#banner-image-preview">
+                <div id="banner-image-preview" class="mt-2"></div>
                 @error('image') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
 

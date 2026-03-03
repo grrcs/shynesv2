@@ -30,7 +30,8 @@
                                 <img src="{{ asset('storage/products/'.$product->image) }}" class="w-full h-full object-cover" alt="Preview">
                             </div>
 
-                            <input type="file" name="image" accept="image/*" class="block w-full text-sm text-secondary dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-secondary dark:text-gray-300 hover:file:dark:bg-gray-800 cursor-pointer">
+                            <input type="file" name="image" accept="image/*" class="block w-full text-sm text-secondary dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-secondary dark:text-gray-300 hover:file:dark:bg-gray-800 cursor-pointer" data-preview-container="#primary-image-preview">
+                            <div id="primary-image-preview"></div>
                             <p class="text-xs text-gray-400 mt-1">*Kosongkan jika tidak ingin mengubah foto utama.</p>
                             @error('image') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
@@ -55,10 +56,12 @@
                             @endif
 
                             <label class="block text-sm font-bold text-secondary dark:text-gray-300 mb-2">Tambah Foto Baru (Bisa lebih dari 1)</label>
-                            <input type="file" name="additional_images[]" multiple accept="image/*" class="block w-full text-sm text-secondary dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-secondary dark:text-gray-300 hover:file:dark:bg-gray-800 cursor-pointer mb-4">
+                            <input type="file" name="additional_images[]" multiple accept="image/*" class="block w-full text-sm text-secondary dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-secondary dark:text-gray-300 hover:file:dark:bg-gray-800 cursor-pointer mb-4" data-preview-container="#additional-images-preview">
+                            <div id="additional-images-preview"></div>
 
                             <label class="block text-sm font-bold text-secondary dark:text-gray-300 mb-2">Tambah Video Baru (Opsional)</label>
-                            <input type="file" name="product_video" accept="video/*" class="block w-full text-sm text-secondary dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-secondary dark:text-gray-300 hover:file:dark:bg-gray-800 cursor-pointer">
+                            <input type="file" name="product_video" accept="video/*" class="block w-full text-sm text-secondary dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-secondary dark:text-gray-300 hover:file:dark:bg-gray-800 cursor-pointer" data-preview-container="#video-preview">
+                            <div id="video-preview"></div>
                         </div>
                     </div>
 

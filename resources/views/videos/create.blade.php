@@ -28,8 +28,9 @@
                             </div>
                             <p class="text-xs text-secondary dark:text-gray-400">MP4, MOV up to 20MB</p>
                         </div>
-                        <input id="video_file" name="video_file" type="file" class="hidden" accept="video/mp4,video/x-m4v,video/*">
+                        <input id="video_file" name="video_file" type="file" class="hidden" accept="video/mp4,video/x-m4v,video/*" data-preview-container="#video-preview-container">
                     </label>
+                    <div id="video-preview-container" class="mt-2 text-center flex justify-center"></div>
                     @error('video_file') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 

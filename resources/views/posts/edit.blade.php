@@ -124,7 +124,8 @@
                             <!-- 3. Input File -->
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">Ganti Gambar (Opsional)</label>
-                                <input type="file" name="image" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-200 file:text-gray-800 hover:file:bg-gray-300 cursor-pointer focus:outline-none">
+                                <input type="file" name="image" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-200 file:text-gray-800 hover:file:bg-gray-300 cursor-pointer focus:outline-none" data-preview-container="#post-image-preview">
+                                <div id="post-image-preview" class="mt-2"></div>
                                 @error('image')
                                     <p class="mt-2 text-sm text-red-600 flex items-center"><i class="fa fa-circle-exclamation mr-1"></i> {{ $message }}</p>
                                 @enderror
@@ -253,6 +254,54 @@
                 submitBtn.innerHTML = 'Simpan';
             }
         }
+
+        // JS for previewing images on edit page
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('input[type="file"][data-preview-container]').forEach(function(input) {
+                input.addEventListener('change', function(e) {
+                    const containerSelector = this.getAttribute('data-preview-container');
+                    const container = document.querySelector(containerSelector);
+                    if (!container) return;
+
+                    container.innerHTML = ''; // Clear previous preview
+                    const files = Array.from(this.files);
+
+                    files.forEach((file, index) => {
+                        if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) return;
+
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            const wrapper = document.createElement('div');
+                            wrapper.className = 'relative rounded overflow-hidden border border-gray-200 inline-block align-top mt-2 mr-2 w-24 h-24 mb-2';
+                            
+                            let mediaEl = document.createElement(file.type.startsWith('image/') ? 'img' : 'video');
+                            mediaEl.src = e.target.result;
+                            mediaEl.className = 'w-full h-full object-cover';
+                            if (file.type.startsWith('video/')) mediaEl.muted = true;
+
+                            const removeBtn = document.createElement('button');
+                            removeBtn.type = 'button';
+                            removeBtn.className = 'absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] hover:bg-red-600 shadow z-10 transition-colors';
+                            removeBtn.innerHTML = '<i class="fa fa-times"></i>';
+                            removeBtn.onclick = () => {
+                                const dt = new DataTransfer();
+                                const currentFiles = Array.from(input.files);
+                                const fileIndex = currentFiles.indexOf(file);
+                                if (fileIndex > -1) currentFiles.splice(fileIndex, 1);
+                                currentFiles.forEach(f => dt.items.add(f));
+                                input.files = dt.files;
+                                wrapper.remove();
+                            };
+
+                            wrapper.appendChild(mediaEl);
+                            wrapper.appendChild(removeBtn);
+                            container.appendChild(wrapper);
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                });
+            });
+        });
     </script>
 </body>
 </html>

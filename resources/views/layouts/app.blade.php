@@ -507,6 +507,72 @@
                 }, 200);
             }, 800);
         }
+
+        // Global Script for File Input Previews
+        document.addEventListener('DOMContentLoaded', function() {
+            document.body.addEventListener('change', function(e) {
+                if (e.target && e.target.tagName === 'INPUT' && e.target.type === 'file' && e.target.hasAttribute('data-preview-container')) {
+                    generateFilePreview(e.target);
+                }
+            });
+
+            function generateFilePreview(input) {
+                const containerSelector = input.getAttribute('data-preview-container');
+                const container = document.querySelector(containerSelector);
+                if (!container) return;
+
+                // Clear previous dynamic previews
+                container.querySelectorAll('.dynamic-preview').forEach(el => el.remove());
+
+                const files = Array.from(input.files);
+                files.forEach((file, index) => {
+                    const isVideo = file.type.startsWith('video/');
+                    const isImage = file.type.startsWith('image/');
+                    
+                    if (!isVideo && !isImage) return;
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'dynamic-preview relative rounded overflow-hidden border border-gray-200 aspect-square inline-block align-top mt-2 mr-2 w-24 h-24 mb-2';
+                        
+                        let mediaEl;
+                        if (isImage) {
+                            mediaEl = document.createElement('img');
+                            mediaEl.src = e.target.result;
+                            mediaEl.className = 'w-full h-full object-cover';
+                        } else if (isVideo) {
+                            mediaEl = document.createElement('video');
+                            mediaEl.src = e.target.result;
+                            mediaEl.className = 'w-full h-full object-cover';
+                            mediaEl.muted = true;
+                        }
+
+                        const removeBtn = document.createElement('button');
+                        removeBtn.type = 'button';
+                        removeBtn.className = 'absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] hover:bg-red-600 shadow z-10 transition-colors';
+                        removeBtn.innerHTML = '<i class="fa fa-times"></i>';
+                        removeBtn.onclick = () => {
+                            const dt = new DataTransfer();
+                            const currentFiles = Array.from(input.files);
+                            // We need to find the correct index again because previous files might be deleted
+                            const fileIndex = currentFiles.indexOf(file);
+                            if (fileIndex !== -1) {
+                                currentFiles.splice(fileIndex, 1);
+                            }
+                            currentFiles.forEach(f => dt.items.add(f));
+                            input.files = dt.files;
+                            wrapper.remove();
+                        };
+
+                        wrapper.appendChild(mediaEl);
+                        wrapper.appendChild(removeBtn);
+                        container.appendChild(wrapper);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+        });
     </script>
     @stack('scripts')
 </body>
