@@ -33,15 +33,26 @@ class OrderController extends Controller
         if ($cartItems->isEmpty()) {
             return redirect()->route('products.index')->with('error', 'Keranjang belanja kosong!');
         }
-        return view('checkout.payment', compact('cartItems'));
+        
+        // Get active payment options
+        $paymentOptions = \App\Models\PaymentOption::where('is_active', true)
+            ->orderBy('name')
+            ->get();
+            
+        return view('checkout.payment-options', compact('cartItems', 'paymentOptions'));
     }
 
     public function store(Request $request, CheckoutService $checkoutService)
     {
         $cartItems = auth()->user()->cartItems()->with('product')->get();
         
+        // Validate payment option
+        $validated = $request->validate([
+            'payment_option_id' => 'required|exists:payment_options,id',
+        ]);
+        
         try {
-            $checkoutService->processCheckout($cartItems, auth()->id());
+            $checkoutService->processCheckout($cartItems, auth()->id(), $validated['payment_option_id']);
             return redirect()->route('orders.my')->with('success', 'Pesanan berhasil dibuat! Silakan tunggu konfirmasi admin.');
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());

@@ -56,6 +56,21 @@ Route::middleware(['auth'])->group(function () {
     // Admin Dashboard
     Route::get('/admin/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('admin.dashboard');
 
+    // Admin Payment Options Routes
+    Route::resource('/admin/payment-options', App\Http\Controllers\Admin\PaymentOptionController::class)->names([
+        'index' => 'admin.payment-options.index',
+        'create' => 'admin.payment-options.create',
+        'store' => 'admin.payment-options.store',
+        'show' => 'admin.payment-options.show',
+        'edit' => 'admin.payment-options.edit',
+        'update' => 'admin.payment-options.update',
+        'destroy' => 'admin.payment-options.destroy',
+    ]);
+
+    // Buyer Payment Options Routes
+    Route::get('/payment-options', [App\Http\Controllers\PaymentController::class, 'getPaymentOptions'])->name('payment.options.api');
+    Route::get('/checkout/payment-options', [App\Http\Controllers\PaymentController::class, 'showPaymentOptions'])->name('payment.options.show');
+
     // Confessions
     Route::resource('/confessions', App\Http\Controllers\ConfessionController::class)->only(['index', 'store']);
 });

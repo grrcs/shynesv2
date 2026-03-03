@@ -46,6 +46,18 @@
             </div>
             <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ $totalUsers }}</div>
         </div>
+
+        <!-- Payment Options -->
+        <div class="bg-white dark:bg-[#151515] p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 transition-colors">
+            <div class="flex items-center justify-between mb-4">
+                <div class="text-gray-500 dark:text-gray-400 text-sm">Opsi Pembayaran</div>
+                <div class="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400"><i class="fa fa-credit-card"></i></div>
+            </div>
+            <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ \App\Models\PaymentOption::where('is_active', true)->count() }}</div>
+            <div class="mt-2 text-xs">
+                <a href="{{ route('admin.payment-options.index') }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">Kelola Opsi &rarr;</a>
+            </div>
+        </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">

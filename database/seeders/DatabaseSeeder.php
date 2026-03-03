@@ -30,5 +30,8 @@ class DatabaseSeeder extends Seeder
             'role' => 'pembeli',
             'password' => bcrypt('password'),
         ]);
+
+        // Seed payment options
+        $this->call(PaymentOptionSeeder::class);
     }
 }

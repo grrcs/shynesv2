@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\PaymentOption;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
@@ -14,19 +15,30 @@ class CheckoutService
      *
      * @param \Illuminate\Database\Eloquent\Collection $cartItems
      * @param int $userId
+     * @param int|null $paymentOptionId
      * @return Order
      * @throws Exception
      */
-    public function processCheckout($cartItems, int $userId): Order
+    public function processCheckout($cartItems, int $userId, ?int $paymentOptionId = null): Order
     {
         if ($cartItems->isEmpty()) {
             throw new Exception('Keranjang belanja kosong!');
         }
 
-        return DB::transaction(function () use ($cartItems, $userId) {
-            $totalPrice = 0;
+        return DB::transaction(function () use ($cartItems, $userId, $paymentOptionId) {
+            $subtotal = 0;
+            $taxAmount = 0;
+            $paymentOption = null;
 
-            // Calculate total and verify stock
+            // Get payment option if provided
+            if ($paymentOptionId) {
+                $paymentOption = PaymentOption::find($paymentOptionId);
+                if (!$paymentOption || !$paymentOption->is_active) {
+                    throw new Exception('Opsi pembayaran tidak valid atau tidak aktif!');
+                }
+            }
+
+            // Calculate subtotal and verify stock
             foreach ($cartItems as $item) {
                 if ($item->product->stock < $item->quantity) {
                     throw new Exception("Stok produk {$item->product->title} tidak mencukupi!");
@@ -39,13 +51,22 @@ class CheckoutService
                             ? $item->product->discount_price 
                             : $item->product->price;
                             
-                $totalPrice += $price * $item->quantity;
+                $subtotal += $price * $item->quantity;
             }
+
+            // Calculate tax amount based on payment option
+            if ($paymentOption) {
+                $taxAmount = $subtotal * ($paymentOption->tax_percentage / 100);
+            }
+
+            $totalPrice = $subtotal + $taxAmount;
 
             // Create Order
             $order = Order::create([
                 'user_id' => $userId,
+                'payment_option_id' => $paymentOptionId,
                 'total_price' => $totalPrice,
+                'tax_amount' => $taxAmount,
                 'status' => 'pending', 
                 'invoice_number' => 'INV-' . time() . '-' . $userId,
             ]);

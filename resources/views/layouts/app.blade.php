@@ -169,6 +169,7 @@
                         
                         @if(auth()->user()->isAdmin())
                             <a href="{{ route('orders.index') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('orders.*') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">Pesanan</a>
+                            <a href="{{ route('admin.payment-options.index') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('admin.payment-options.*') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">Opsi Pembayaran</a>
                         @else
                             <a href="{{ route('orders.my') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('orders.*') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">Pesanan Saya</a>
                         @endif
@@ -257,6 +258,7 @@
                     
                     @if(auth()->user()->isAdmin())
                         <a href="{{ route('orders.index') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('orders.*') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Pesanan</a>
+                        <a href="{{ route('admin.payment-options.index') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('admin.payment-options.*') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Opsi Pembayaran</a>
                     @else
                         <a href="{{ route('orders.my') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('orders.*') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Pesanan Saya</a>
                     @endif
