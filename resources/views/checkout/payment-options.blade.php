@@ -10,6 +10,16 @@
         <p class="text-xs tracking-widest uppercase text-secondary">Pilih metode pembayaran yang Anda inginkan</p>
     </div>
     
+    @php
+        $subtotalAmount = 0;
+        if (isset($cartItems)) {
+            foreach ($cartItems as $item) {
+                // Determine actual price (discount or regular)
+                $actualPrice = ($item->product->is_discount_active && $item->product->discount_price) ? $item->product->discount_price : $item->product->price;
+                $subtotalAmount += $actualPrice * $item->quantity;
+            }
+        }
+    @endphp
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <!-- Payment Options -->
         <div class="md:col-span-2">
@@ -115,8 +125,9 @@
 
 @push('scripts')
 <script>
-    // Sample data - in real implementation, this should come from the backend
-    const subtotalAmount = 1000000; // Rp 1.000.000 as example
+    // Data subtotal asli dari backend
+    const subtotalAmount = {{ $subtotalAmount ?? 0 }};
+    
     
     function formatRupiah(amount) {
         return amount.toLocaleString('id-ID');

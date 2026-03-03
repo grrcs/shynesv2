@@ -27,10 +27,16 @@ class PaymentController extends Controller
      */
     public function showPaymentOptions()
     {
+        $cartItems = collect();
+        
+        if (auth()->check()) {
+            $cartItems = auth()->user()->cartItems()->with('product')->get();
+        }
+
         $paymentOptions = PaymentOption::where('is_active', true)
             ->orderBy('name')
             ->get();
             
-        return view('checkout.payment-options', compact('paymentOptions'));
+        return view('checkout.payment-options', compact('paymentOptions', 'cartItems'));
     }
 }
