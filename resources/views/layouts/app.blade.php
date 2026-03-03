@@ -23,6 +23,89 @@
         body { font-family: 'DM Sans', sans-serif; }
         .font-serif { font-family: 'Playfair Display', serif; }
         
+        /* Luxury Preloader */
+        #preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s cubic-bezier(0.65, 0, 0.35, 1), visibility 0.8s;
+        }
+
+        .dark #preloader {
+            background-color: #111111;
+        }
+
+        .preloader-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 600;
+            letter-spacing: 0.5em;
+            text-transform: uppercase;
+            color: #111111;
+            margin-bottom: 20px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: preloaderText 1.2s ease-out forwards;
+        }
+
+        .dark .preloader-logo {
+            color: #ffffff;
+        }
+
+        .preloader-bar-container {
+            width: 150px;
+            height: 1px;
+            background-color: #eeeeee;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .dark .preloader-bar-container {
+            background-color: #222222;
+        }
+
+        .preloader-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 100%;
+            background-color: #111111;
+            transition: width 0.5s ease-out;
+            animation: preloaderProgress 2s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+        }
+
+        .dark .preloader-bar {
+            background-color: #ffffff;
+        }
+
+        @keyframes preloaderText {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+                letter-spacing: 0.8em;
+            }
+        }
+
+        @keyframes preloaderProgress {
+            0% { width: 0%; }
+            50% { width: 70%; }
+            100% { width: 100%; }
+        }
+
+        .preloader-hidden {
+            opacity: 0 !important;
+            visibility: hidden !important;
+        }
+
         /* Premium minimal scrollbar */
         .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
@@ -51,6 +134,14 @@
     @stack('styles')
 </head>
 <body class="bg-white text-primary antialiased min-h-screen flex flex-col selection:bg-black selection:text-white dark:bg-primary dark:text-gray-200 transition-colors duration-300">
+
+    <!-- Luxury Preloader -->
+    <div id="preloader">
+        <div class="preloader-logo">Shyness</div>
+        <div class="preloader-bar-container">
+            <div class="preloader-bar"></div>
+        </div>
+    </div>
 
     <!-- Minimalist Navbar -->
     <nav class="w-full bg-white dark:bg-primary border-b border-thin sticky top-0 z-40 transition-colors duration-300">
@@ -186,6 +277,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script>
+        // Preloader Hiding Logic
+        window.addEventListener('load', function() {
+            const preloader = document.getElementById('preloader');
+            if (preloader) {
+                setTimeout(() => {
+                    preloader.classList.add('preloader-hidden');
+                }, 500); // Small delay for aesthetic feel
+            }
+        });
+
         toastr.options = { "positionClass": "toast-bottom-right", "progressBar": true, "showDuration": "300" };
         @if(session()->has('success')) toastr.success('{{ session('success') }}'); @endif
         @if(session()->has('error')) toastr.error('{{ session('error') }}'); @endif
