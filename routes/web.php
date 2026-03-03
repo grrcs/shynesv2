@@ -56,6 +56,9 @@ Route::middleware(['auth'])->group(function () {
     // Admin Dashboard
     Route::get('/admin/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('admin.dashboard');
 
+    // User Addresses Profile
+    Route::resource('/profile/addresses', App\Http\Controllers\AddressController::class);
+
     // Admin Payment Options Routes
     Route::resource('/admin/payment-options', App\Http\Controllers\Admin\PaymentOptionController::class)->names([
         'index' => 'admin.payment-options.index',

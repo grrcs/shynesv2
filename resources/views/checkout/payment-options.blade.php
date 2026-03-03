@@ -21,8 +21,52 @@
         }
     @endphp
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <!-- Payment Options -->
-        <div class="md:col-span-2">
+        <!-- Address & Payment Options -->
+        <div class="md:col-span-2 space-y-10">
+            <!-- Shipping Address -->
+            <div>
+                <div class="flex justify-between items-center mb-6 pb-4 border-b border-thin dark:border-gray-800 transition-colors">
+                    <h3 class="text-xs tracking-widest uppercase font-medium text-primary dark:text-gray-300">Alamat Pengiriman</h3>
+                    <a href="{{ route('addresses.create') }}" class="text-xs tracking-widest uppercase text-secondary hover:text-black dark:hover:text-white transition-colors"><i class="fa w-4 fa-plus"></i> Tambah Alamat</a>
+                </div>
+                
+                @if(isset($addresses) && $addresses->isEmpty())
+                    <div class="bg-red-50 dark:bg-red-900/20 border border-red-500 p-4 rounded-lg text-center">
+                        <p class="text-red-700 dark:text-red-300 text-sm mb-2">Anda belum menambahkan alamat pengiriman.</p>
+                        <a href="{{ route('addresses.create') }}" class="inline-block mt-2 px-4 py-2 bg-primary text-white dark:bg-white dark:text-primary text-xs font-bold rounded">Tambah Alamat Sekarang</a>
+                    </div>
+                @else
+                    <div class="space-y-4">
+                        @foreach($addresses as $address)
+                            <label class="block cursor-pointer group">
+                                <input type="radio" name="address_id" value="{{ $address->id }}" 
+                                       class="sr-only address-radio" 
+                                       {{ $address->is_primary ? 'checked' : '' }}>
+                                <div class="p-5 bg-white dark:bg-primary border border-gray-200 dark:border-gray-800 rounded-xl transition-all duration-300 group-has-[:checked]:border-black group-has-[:checked]:ring-1 group-has-[:checked]:ring-black group-has-[:checked]:bg-gray-50 dark:group-has-[:checked]:border-white dark:group-has-[:checked]:ring-white dark:group-has-[:checked]:bg-[#151515]">
+                                    <div class="flex items-start gap-4">
+                                        <div class="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center mt-0.5 transition-colors group-has-[:checked]:border-black dark:group-has-[:checked]:border-white">
+                                            <div class="w-2.5 h-2.5 rounded-full bg-black dark:bg-white scale-0 transition-transform duration-300 group-has-[:checked]:scale-100"></div>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2">
+                                                <h4 class="font-bold text-primary dark:text-white text-sm capitalize">{{ $address->label }}</h4>
+                                                @if($address->is_primary)
+                                                    <span class="bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-widest">Utama</span>
+                                                @endif
+                                            </div>
+                                            <p class="text-sm text-primary dark:text-gray-200 font-medium mt-1">{{ $address->recipient_name }} | {{ $address->phone_number }}</p>
+                                            <p class="text-xs text-secondary dark:text-gray-400 mt-1 line-clamp-2 leading-relaxed">{{ $address->full_address }}, {{ $address->city }}, {{ $address->province }} {{ $address->postal_code }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </label>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+
+            <!-- Payment Options -->
+            <div>
             <h3 class="text-xs tracking-widest uppercase font-medium text-primary dark:text-gray-300 mb-6 pb-4 border-b border-thin dark:border-gray-800 transition-colors">Metode Pembayaran</h3>
             
             @if($paymentOptions->isEmpty())
@@ -108,6 +152,7 @@
                 <form id="orderForm" action="{{ route('orders.store') }}" method="POST">
                     @csrf
                     <input type="hidden" name="payment_option_id" id="selectedPaymentOption">
+                    <input type="hidden" name="address_id" id="selectedAddressOption">
                     <button type="submit" id="confirmPayment" class="w-full py-4 text-xs tracking-widest uppercase font-medium text-white bg-primary dark:bg-white dark:text-primary hover:bg-black dark:hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                         <i class="fa fa-lock mr-2"></i> Konfirmasi Pembayaran
                     </button>
@@ -181,15 +226,35 @@
         });
     });
     
+    // Handle address change to update hidden input
+    document.querySelectorAll('input[name="address_id"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            document.getElementById('selectedAddressOption').value = this.value;
+        });
+    });
+    
     // Set initial hidden input value
     const initialSelectedOption = document.querySelector('input[name="payment_option_id"]:checked');
     if (initialSelectedOption) {
         document.getElementById('selectedPaymentOption').value = initialSelectedOption.value;
     }
     
+    const initialAddressOption = document.querySelector('input[name="address_id"]:checked');
+    if (initialAddressOption) {
+        document.getElementById('selectedAddressOption').value = initialAddressOption.value;
+    }
+    
     // Handle form submission
     document.getElementById('orderForm').addEventListener('submit', function(e) {
         const selectedOption = document.querySelector('input[name="payment_option_id"]:checked');
+        const selectedAddress = document.querySelector('input[name="address_id"]:checked');
+        
+        if (!selectedAddress) {
+            e.preventDefault();
+            alert('Silakan pilih atau tambahkan alamat pengiriman terlebih dahulu.');
+            return;
+        }
+        
         if (!selectedOption) {
             e.preventDefault();
             alert('Silakan pilih metode pembayaran terlebih dahulu.');

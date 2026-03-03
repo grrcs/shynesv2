@@ -214,6 +214,9 @@
                                     <p class="text-[10px] text-secondary uppercase tracking-widest">{{ Auth::user()->role ?? 'User' }}</p>
                                 </div>
                                 <div class="py-1">
+                                    <a href="{{ route('addresses.index') }}" class="block px-4 py-2 text-xs tracking-widest uppercase text-secondary hover:text-primary dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                        Alamat Saya
+                                    </a>
                                     <a href="{{ route('wishlist.index') }}" class="block px-4 py-2 text-xs tracking-widest uppercase text-secondary hover:text-primary dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                                         Wishlist
                                     </a>

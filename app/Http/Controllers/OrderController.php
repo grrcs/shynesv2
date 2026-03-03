@@ -49,10 +49,11 @@ class OrderController extends Controller
         // Validate payment option
         $validated = $request->validate([
             'payment_option_id' => 'required|exists:payment_options,id',
+            'address_id' => 'required|exists:addresses,id',
         ]);
         
         try {
-            $checkoutService->processCheckout($cartItems, auth()->id(), $validated['payment_option_id']);
+            $checkoutService->processCheckout($cartItems, auth()->id(), $validated['payment_option_id'], $validated['address_id']);
             return redirect()->route('orders.my')->with('success', 'Pesanan berhasil dibuat! Silakan tunggu konfirmasi admin.');
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());

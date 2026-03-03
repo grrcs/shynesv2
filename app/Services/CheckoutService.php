@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Address;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\PaymentOption;
@@ -16,16 +17,17 @@ class CheckoutService
      * @param \Illuminate\Database\Eloquent\Collection $cartItems
      * @param int $userId
      * @param int|null $paymentOptionId
+     * @param int|null $addressId
      * @return Order
      * @throws Exception
      */
-    public function processCheckout($cartItems, int $userId, ?int $paymentOptionId = null): Order
+    public function processCheckout($cartItems, int $userId, ?int $paymentOptionId = null, ?int $addressId = null): Order
     {
         if ($cartItems->isEmpty()) {
             throw new Exception('Keranjang belanja kosong!');
         }
 
-        return DB::transaction(function () use ($cartItems, $userId, $paymentOptionId) {
+        return DB::transaction(function () use ($cartItems, $userId, $paymentOptionId, $addressId) {
             $subtotal = 0;
             $taxAmount = 0;
             $paymentOption = null;
@@ -36,6 +38,17 @@ class CheckoutService
                 if (!$paymentOption || !$paymentOption->is_active) {
                     throw new Exception('Opsi pembayaran tidak valid atau tidak aktif!');
                 }
+            }
+
+            // Get shipping address
+            $address = null;
+            if ($addressId) {
+                $address = Address::where('id', $addressId)->where('user_id', $userId)->first();
+                if (!$address) {
+                    throw new Exception('Alamat pengiriman tidak ditemukan atau tidak valid!');
+                }
+            } else {
+                throw new Exception('Alamat pengiriman wajib dipilih!');
             }
 
             // Calculate subtotal and verify stock
@@ -69,6 +82,12 @@ class CheckoutService
                 'tax_amount' => $taxAmount,
                 'status' => 'pending', 
                 'invoice_number' => 'INV-' . time() . '-' . $userId,
+                'shipping_recipient_name' => $address->recipient_name,
+                'shipping_phone_number' => $address->phone_number,
+                'shipping_address' => $address->full_address,
+                'shipping_city' => $address->city,
+                'shipping_province' => $address->province,
+                'shipping_postal_code' => $address->postal_code,
             ]);
 
             // Create Order Items and decrease stock
