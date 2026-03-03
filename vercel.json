@@ -1,5 +1,4 @@
 {
-    "_comment": "force redeploy 1",
     "version": 2,
     "outputDirectory": "public",
     "functions": {
@@ -30,10 +29,13 @@
         }
     ],
     "env": {
+        "VERCEL": "1",
         "APP_ENV": "production",
         "APP_DEBUG": "true",
         "SESSION_DRIVER": "cookie",
         "LOG_CHANNEL": "stderr",
-        "DB_CONNECTION": "pgsql"
+        "DB_CONNECTION": "pgsql",
+        "CACHE_STORE": "file",
+        "CACHE_PREFIX": "shyness"
     }
 }
