@@ -24,16 +24,16 @@
                     @csrf
                     <div class="space-y-4">
                         @foreach($paymentOptions as $option)
-                            <label class="payment-option-label block cursor-pointer">
+                            <label class="payment-option-label block cursor-pointer group">
                                 <input type="radio" name="payment_option_id" value="{{ $option->id }}" 
-                                       class="hidden peer" 
+                                       class="sr-only" 
                                        data-tax="{{ $option->tax_percentage }}"
                                        {{ $loop->first ? 'checked' : '' }}>
-                                <div class="p-6 bg-white dark:bg-primary border border-thin dark:border-gray-800 rounded-xl transition-all peer-checked:border-primary peer-checked:shadow-md peer-checked:bg-gray-50 dark:peer-checked:bg-[#151515]">
+                                <div class="p-6 bg-white dark:bg-primary border border-gray-200 dark:border-gray-800 rounded-xl transition-all duration-300 group-has-[:checked]:border-black group-has-[:checked]:ring-1 group-has-[:checked]:ring-black group-has-[:checked]:bg-gray-50 dark:group-has-[:checked]:border-white dark:group-has-[:checked]:ring-white dark:group-has-[:checked]:bg-[#151515]">
                                     <div class="flex items-start justify-between">
                                         <div class="flex items-start gap-4">
-                                            <div class="w-6 h-6 rounded-full border-2 border-thin dark:border-gray-600 flex items-center justify-center mt-1">
-                                                <div class="w-3 h-3 rounded-full bg-primary dark:bg-white opacity-0 transition-opacity peer-checked:opacity-100"></div>
+                                            <div class="w-6 h-6 rounded-full border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center mt-1 transition-colors group-has-[:checked]:border-black dark:group-has-[:checked]:border-white">
+                                                <div class="w-3 h-3 rounded-full bg-black dark:bg-white scale-0 transition-transform duration-300 group-has-[:checked]:scale-100"></div>
                                             </div>
                                             <div>
                                                 <h4 class="font-bold text-primary dark:text-white text-lg">{{ $option->name }}</h4>
