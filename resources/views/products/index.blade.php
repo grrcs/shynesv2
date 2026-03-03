@@ -65,7 +65,7 @@
                             <tr class="border-b border-thin dark:border-gray-800 hover:bg-gray-50/50 dark:hover:bg-gray-900/50 transition-colors group">
                                 <td class="p-4">
                                     <div class="w-12 h-16 bg-gray-100 dark:bg-[#151515] overflow-hidden relative border border-thin dark:border-gray-800 transition-colors">
-                                        <img src="{{ asset('storage/products/'.$product->image) }}" class="object-cover w-full h-full grayscale hover:grayscale-0 transition-all duration-500" alt="{{ $product->title }}">
+                                        <img src="{{ asset('storage/products/'.$product->image) }}" onerror="this.onerror=null;this.src='{{ asset('images/campaign/shyness_vol_1.png') }}';" class="object-cover w-full h-full grayscale hover:grayscale-0 transition-all duration-500" alt="{{ $product->title }}">
                                     </div>
                                 </td>
                                 <td class="py-4 px-2">

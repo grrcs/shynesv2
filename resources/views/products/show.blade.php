@@ -31,7 +31,7 @@
                 <div class="swiper-wrapper">
                     <!-- Main Image Slide -->
                     <div class="swiper-slide h-full w-full flex items-center justify-center">
-                        <img src="{{ asset('storage/products/'.$product->image) }}" 
+                        <img src="{{ asset('storage/products/'.$product->image) }}" onerror="this.onerror=null;this.src='{{ asset('images/campaign/shyness_vol_1.png') }}';" 
                              alt="{{ $product->title }}" 
                              class="w-full h-full object-cover transition-transform duration-700 hover:scale-105 select-image">
                     </div>
@@ -41,7 +41,7 @@
                         @foreach($product->media as $media)
                             <div class="swiper-slide h-full w-full flex items-center justify-center bg-gray-100 dark:bg-[#151515]">
                                 @if($media->file_type == 'image')
-                                    <img src="{{ asset('storage/products/'.$media->file_path) }}" class="w-full h-full object-cover transition-transform duration-700 hover:scale-105 select-image">
+                                    <img src="{{ asset('storage/products/'.$media->file_path) }}" onerror="this.onerror=null;this.src='{{ asset('images/campaign/shyness_vol_1.png') }}';" class="w-full h-full object-cover transition-transform duration-700 hover:scale-105 select-image">
                                 @else
                                     <video src="{{ asset('storage/products_video/'.$media->file_path) }}" class="w-full h-full object-cover" controls playsinline></video>
                                 @endif
