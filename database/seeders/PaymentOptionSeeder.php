@@ -53,7 +53,10 @@ class PaymentOptionSeeder extends Seeder
         ];
 
         foreach ($paymentOptions as $option) {
-            PaymentOption::create($option);
+            PaymentOption::firstOrCreate(
+                ['name' => $option['name']],
+                $option
+            );
         }
     }
 }
