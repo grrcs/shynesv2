@@ -41,13 +41,15 @@
                             @if($product->media && $product->media->count() > 0)
                                 <div class="grid grid-cols-3 gap-2 mb-3">
                                     @foreach($product->media as $media)
-                                        <div class="relative rounded overflow-hidden border border-gray-200 aspect-square">
+                                        <div class="relative rounded overflow-hidden border border-gray-200 aspect-square" id="media-container-{{ $media->id }}">
                                             @if($media->file_type == 'image')
                                                 <img src="{{ asset('storage/products/'.$media->file_path) }}" class="w-full h-full object-cover">
                                             @else
                                                 <video src="{{ asset('storage/products_video/'.$media->file_path) }}" class="w-full h-full object-cover" controls></video>
                                             @endif
-                                            <!-- Optional: You might want to add a form to delete specific media. For now just displaying it -->
+                                            <button type="button" onclick="deleteExistingMedia({{ $media->id }})" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] hover:bg-red-600 shadow z-10 transition-colors">
+                                                <i class="fa fa-times"></i>
+                                            </button>
                                         </div>
                                     @endforeach
                                 </div>
@@ -247,7 +249,17 @@
 
 @push('scripts')
 <script>
-// Any scripts here
+    function deleteExistingMedia(id) {
+        const container = document.getElementById('media-container-' + id);
+        if (container) {
+            container.style.display = 'none';
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'deleted_media[]';
+            input.value = id;
+            document.forms[0].appendChild(input);
+        }
+    }
 </script>
 @endpush
 

@@ -58,7 +58,7 @@ class ProductService
     /**
      * Update an existing product.
      */
-    public function updateProduct(Product $product, array $data, $imageFile = null, $additionalImages = [], $videoFile = null): Product
+    public function updateProduct(Product $product, array $data, $imageFile = null, $additionalImages = [], $videoFile = null, array $deletedMedia = []): Product
     {
         $updateData = [
             'title'       => $data['title'],
@@ -107,6 +107,18 @@ class ProductService
                 'file_path' => $videoName,
                 'file_type' => 'video'
             ]);
+        }
+
+        if (!empty($deletedMedia)) {
+            $mediaToDelete = \App\Models\ProductMedia::whereIn('id', $deletedMedia)->where('product_id', $product->id)->get();
+            foreach ($mediaToDelete as $media) {
+                if ($media->file_type === 'video') {
+                    Storage::disk('public')->delete('products_video/' . $media->file_path);
+                } else {
+                    Storage::disk('public')->delete('products/' . $media->file_path);
+                }
+                $media->delete();
+            }
         }
 
         return $product;

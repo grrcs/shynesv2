@@ -129,7 +129,8 @@ class ProductController extends Controller
             $validatedData, 
             $request->file('image'),
             $request->file('additional_images'),
-            $request->file('product_video')
+            $request->file('product_video'),
+            $request->input('deleted_media', [])
         );
 
         return redirect()->route('products.index')->with(['success' => 'Produk Berhasil Diupdate!']);
