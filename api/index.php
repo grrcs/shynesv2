@@ -9,7 +9,7 @@ error_reporting(E_ALL);
 $basePath = realpath(__DIR__ . '/../');
 
 // 3. Siapkan folder Storage di /tmp (Hanya untuk Vercel)
-if (isset($_SERVER['VERCEL']) || env('VERCEL')) {
+if (isset($_SERVER['VERCEL']) || getenv('VERCEL')) {
     $storagePath = '/tmp/storage';
     $folders = [
         $storagePath . '/framework/views',
