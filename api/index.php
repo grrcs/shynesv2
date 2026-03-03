@@ -6,10 +6,8 @@ $basePath = realpath(__DIR__ . '/../');
 // 2. Vercel hanya mengizinkan penulisan di folder /tmp
 $storagePath = '/tmp/storage';
 
-// Buat struktur folder storage di /tmp jika belum ada
+// Struktur folder yang dibutuhkan Laravel
 $folders = [
-    $storagePath,
-    $storagePath . '/framework',
     $storagePath . '/framework/views',
     $storagePath . '/framework/cache',
     $storagePath . '/framework/sessions',
@@ -22,17 +20,26 @@ foreach ($folders as $folder) {
     }
 }
 
-// 3. Paksa Laravel menggunakan path di /tmp ini
+// 3. Konfigurasi Environment khusus Vercel
 putenv('APP_STORAGE=' . $storagePath);
 putenv('VIEW_COMPILED_PATH=' . $storagePath . '/framework/views');
-putenv('SESSION_DIRECTORY=' . $storagePath . '/framework/sessions');
+putenv('SESSION_DRIVER=cookie'); // Gunakan cookie agar tidak butuh DB/File untuk sesi sementara
+putenv('LOG_CHANNEL=stderr');
 
-// 4. Mencegah Laravel mencoba membaca cache lama dari bootstrap/cache
-// Kita beritahu Laravel untuk mengabaikan file cache config/routes di Vercel
-unset($_ENV['APP_CONFIG_CACHE']);
-unset($_ENV['APP_ROUTES_CACHE']);
-unset($_ENV['APP_SERVICES_CACHE']);
-unset($_ENV['APP_PACKAGES_CACHE']);
+// 4. MATIKAN SEMUA CACHE FILES (Sangat Penting)
+// Laravel akan mencari file ini, jika ada, Laravel tidak akan loading ServiceProvider dengan benar
+$cacheFiles = [
+    $basePath . '/bootstrap/cache/config.php',
+    $basePath . '/bootstrap/cache/routes.php',
+    $basePath . '/bootstrap/cache/services.php',
+    $basePath . '/bootstrap/cache/packages.php',
+];
 
-// 5. Jalankan aplikasi melalui public/index.php asli
+foreach ($cacheFiles as $file) {
+    if (file_exists($file)) {
+        @unlink($file);
+    }
+}
+
+// 5. Jalankan aplikasi menggunakan public/index.php
 require $basePath . '/public/index.php';
