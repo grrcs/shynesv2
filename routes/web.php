@@ -24,22 +24,6 @@ Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('regi
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Temporary fix passwords route
-Route::get('/fix-passwords', function () {
-    $users = \App\Models\User::all();
-    $fixed = 0;
-    foreach ($users as $user) {
-        // If password is not a bcrypt hash (doesn't start with $2y$)
-        if (!str_starts_with($user->password, '$2y$')) {
-            $user->password = bcrypt('password'); // Default password assumption or hash whatever was there
-            // Actually, if we just want them to login with 'password', let's set it to bcrypt('password')
-            $user->save();
-            $fixed++;
-        }
-    }
-    return "Fixed {$fixed} user passwords! You can now log in with 'password'.";
-});
-
 // Protected Routes
 Route::middleware(['auth'])->group(function () {
     Route::resource('/posts', PostController::class);
