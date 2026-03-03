@@ -25,7 +25,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
 | Vercel Compatibility
 |--------------------------------------------------------------------------
 */
-if (isset($_SERVER['VERCEL']) || env('VERCEL')) {
+if (isset($_SERVER['VERCEL']) || getenv('VERCEL')) {
     // Paksa storage ke folder /tmp (satu-satunya folder yang bisa ditulisi di Vercel)
     $app->useStoragePath('/tmp/storage');
     
