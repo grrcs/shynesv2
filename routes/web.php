@@ -24,6 +24,20 @@ Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('regi
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// Temporary debug route
+Route::get('/debug-users', function () {
+    $users = \App\Models\User::all(['id', 'email', 'password'])->map(function($u) {
+        return [
+            'id' => $u->id,
+            'email' => $u->email,
+            'password_prefix' => substr($u->password, 0, 5),
+            'password_length' => strlen($u->password),
+            'raw_password_sample' => $u->password
+        ];
+    });
+    return response()->json($users);
+});
+
 // Protected Routes
 Route::middleware(['auth'])->group(function () {
     Route::resource('/posts', PostController::class);
