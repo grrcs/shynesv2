@@ -1,14 +1,18 @@
+# Folders
 vendor/
 node_modules/
 .git/
 storage/
-public/storage
+tests/
+database/factories/
+database/seeders/
+public/storage/
+public/build/
+public/assets/images/
 .vercel/
 .gemini/
-tests/
-database/seeders/
-database/factories/
-*.log
+
+# Files
 *.zip
 *.rar
 *.7z
@@ -16,15 +20,9 @@ database/factories/
 *.mov
 *.wav
 *.mp3
-tests/
-node_modules/
-vendor/
-.gemini/
-.vercel/
-.git/
-storage/logs/
-storage/framework/cache/
-storage/framework/sessions/
-storage/framework/views/
-public/assets/images/
-public/build/
+*.log
+.env
+.env.backup
+composer.lock
+package-lock.json
+yarn.lock
