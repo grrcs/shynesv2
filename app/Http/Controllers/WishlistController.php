@@ -16,18 +16,22 @@ class WishlistController extends Controller
         return view('wishlist.index', compact('wishlists'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request)
     {
         $request->validate([
             'product_id' => 'required|exists:products,id',
         ]);
 
-        $exists = Wishlist::where('user_id', auth()->id())
+        $wishlist = Wishlist::where('user_id', auth()->id())
                           ->where('product_id', $request->product_id)
-                          ->exists();
+                          ->first();
 
-        if ($exists) {
-            return back()->with('info', 'Produk sudah ada di wishlist!');
+        if ($wishlist) {
+            $wishlist->delete();
+            if ($request->expectsJson()) {
+                return response()->json(['success' => true, 'action' => 'removed', 'message' => 'Produk dihapus dari wishlist.']);
+            }
+            return back()->with('info', 'Produk dihapus dari wishlist.');
         }
 
         Wishlist::create([
@@ -35,14 +39,20 @@ class WishlistController extends Controller
             'product_id' => $request->product_id,
         ]);
 
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'action' => 'added', 'message' => 'Produk ditambahkan ke wishlist!']);
+        }
         return back()->with('success', 'Produk ditambahkan ke wishlist!');
     }
 
-    public function destroy($id): RedirectResponse
+    public function destroy(Request $request, $id)
     {
         $wishlist = Wishlist::where('user_id', auth()->id())->findOrFail($id);
         $wishlist->delete();
 
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Produk dihapus dari wishlist.']);
+        }
         return back()->with('success', 'Produk dihapus dari wishlist.');
     }
 }

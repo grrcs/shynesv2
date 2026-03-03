@@ -40,9 +40,9 @@ class CategoryController extends Controller
      * store
      *
      * @param  mixed $request
-     * @return RedirectResponse
+     * @return mixed
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request)
     {
         // Validasi
         $this->validate($request, [
@@ -51,10 +51,18 @@ class CategoryController extends Controller
         ]);
 
         // Simpan
-        Category::create([
+        $category = Category::create([
             'name'        => $request->name,
             'description' => $request->description
         ]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'category' => $category,
+                'message' => 'Kategori Berhasil Dibuat!'
+            ]);
+        }
 
         return redirect()->route('categories.index')->with(['success' => 'Kategori Berhasil Dibuat!']);
     }

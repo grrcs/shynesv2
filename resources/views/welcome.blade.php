@@ -3,84 +3,463 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Selamat Datang - Shyness</title>
+    <title>SHYNESS</title>
 
-    <!-- Font: Inter (Google Fonts) -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- FontAwesome -->
+    <!-- Icon Font -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- Vite & Tailwind v4 -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        /* Animasi sederhana untuk fade-in */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translate3d(0, 20px, 0);
-            }
-            to {
-                opacity: 1;
-                transform: translate3d(0, 0, 0);
-            }
+        body { font-family: 'DM Sans', sans-serif; }
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .hero-pattern { background-image: radial-gradient(circle at 1px 1px, #e5e5e5 1px, transparent 0); background-size: 32px 32px; }
+        :is(.dark .hero-pattern) { background-image: radial-gradient(circle at 1px 1px, #333333 1px, transparent 0); }
+        .border-thin { border: 1px solid #E5E5E5; }
+        :is(.dark .border-thin) { border-color: #27272a; }
+
+        /* Infinite Marquee */
+        .marquee-container {
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
         }
-        .animate-fade-in-up {
-            animation: fadeInUp 0.8s ease-out forwards;
+        .marquee-content {
+            display: inline-block;
+            animation: marquee 30s linear infinite;
         }
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Hover image crossfade */
+        .hover-crossfade .img-hover {
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .hover-crossfade:hover .img-hover {
+            opacity: 1;
+        }
+
+        /* Pure CSS Scroll Animations (No Vite dependancy) */
+        .reveal-up {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal-up.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .delay-150 { transition-delay: 150ms; }
+        .delay-300 { transition-delay: 300ms; }
+        .delay-500 { transition-delay: 500ms; }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900 antialiased h-screen flex flex-col justify-between overflow-hidden relative">
+<body class="bg-white dark:bg-primary text-primary dark:text-white antialiased min-h-screen selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black transition-colors">
 
-    <!-- Dekorasi Background (Abstrak Monokrom) -->
-    <div class="absolute top-0 left-0 w-64 h-64 bg-gray-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 -translate-x-1/2 -translate-y-1/2"></div>
-    <div class="absolute bottom-0 right-0 w-96 h-96 bg-gray-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 translate-x-1/3 translate-y-1/3"></div>
-
-    <!-- Empty Header for spacing -->
-    <div></div>
+    <!-- Navbar Minimalis -->
+    <nav class="fixed top-0 left-0 w-full py-6 px-8 flex justify-between items-center border-b border-thin bg-white/80 dark:bg-primary/80 backdrop-blur-md z-50 transition-colors">
+        <div class="text-xl font-serif font-semibold tracking-widest uppercase">Shyness</div>
+        <a href="{{ route('login') }}" class="text-sm tracking-widest uppercase hover:underline underline-offset-4 pointer">Log In</a>
+    </nav>
 
     <!-- Main Content -->
-    <div class="relative z-10 flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 text-center animate-fade-in-up">
+    <main class="relative bg-gray-50 dark:bg-primary transition-colors">
+        <!-- Sequence Container for Scroll height -->
+        <div class="sequence-container h-[400vh] w-full relative">
+            
+            <!-- Sticky Section -->
+            <div class="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-hidden">
+                <!-- Canvas Background -->
+                <canvas id="sequence-canvas" class="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"></canvas>
+                
+                <!-- Content -->
+                <div class="z-10 text-center max-w-4xl mx-auto px-4 sm:px-6 relative">
+                    <!-- Tipografi Editorial -->
+                    <h1 class="text-5xl sm:text-7xl font-serif font-semibold tracking-tight text-primary dark:text-white mb-6 leading-tight drop-shadow-sm reveal-up opacity-0 translate-y-12 transition-all duration-[1200ms] ease-out">
+                        Refined Elegance, <br/>
+                        <span class="text-secondary dark:text-gray-300 italic font-light">Crafted for Purists.</span>
+                    </h1>
 
-        <!-- Logo Besar -->
-        <div class="mb-8 p-4 bg-white rounded-2xl shadow-sm border border-gray-100 inline-block">
-            <img src="{{ asset('storage/images/shyness.png') }}"
-                 alt="Logo Shyness"
-                 class="h-24 w-auto object-contain"
-                 onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=S&background=000000&color=fff&size=128&font-size=0.5';">
+                    <p class="mt-8 max-w-lg mx-auto text-base sm:text-lg text-secondary dark:text-gray-400 font-light tracking-wide leading-relaxed drop-shadow-sm reveal-up opacity-0 translate-y-12 transition-all duration-[1200ms] delay-150 ease-out">
+                        Discover the curation of minimal essence. Manage and showcase your premium portfolio with absolute clarity.
+                    </p>
+
+                    <div class="mt-12 flex justify-center reveal-up opacity-0 translate-y-12 transition-all duration-[1200ms] delay-300 ease-out">
+                        <a href="{{ route('login') }}"
+                           class="inline-flex items-center justify-center px-10 py-4 text-sm tracking-widest uppercase font-medium text-white bg-primary dark:bg-white dark:text-primary hover:bg-black dark:hover:bg-gray-200 transition-colors duration-300 backdrop-blur-md">
+                            Akses Dashboard
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Scroll Indicator -->
+                <div class="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center opacity-70 animate-bounce">
+                    <span class="text-[10px] tracking-widest uppercase mb-2">Scroll</span>
+                    <i class="fa-solid fa-arrow-down text-sm"></i>
+                </div>
+            </div>
         </div>
 
-        <!-- Judul -->
-        <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900 mb-4">
-            Selamat Datang di <span class="text-transparent bg-clip-text bg-gradient-to-r from-gray-700 to-black">SHYNESS</span>
-        </h1>
+        <!-- Storytelling Section -->
+        <section id="storytelling" class="relative z-20 bg-white dark:bg-primary py-32 px-6 sm:px-12 lg:px-24">
+            <div class="max-w-6xl mx-auto space-y-40">
+                <!-- Story 1 -->
+                <div class="story-block opacity-0 translate-y-12 transition-all duration-[1500ms] ease-out flex flex-col md:flex-row gap-12 items-center">
+                    <div class="flex-1 space-y-6">
+                        <span class="text-xs tracking-widest uppercase text-gray-500 font-semibold">The Genesis</span>
+                        <h2 class="text-4xl md:text-6xl font-serif font-semibold leading-tight text-gray-900 dark:text-white">
+                            Born from <br/> <span class="italic font-light">Subtlety.</span>
+                        </h2>
+                        <p class="text-lg text-gray-600 dark:text-gray-300 font-light leading-relaxed max-w-md">
+                            Shyness emerges from the belief that true elegance doesn't demand attention—it naturally commands it. We craft garments for those who find power in understatement, blending minimalist lines with uncompromising quality.
+                        </p>
+                    </div>
+                    <div class="flex-1 w-full relative group shadow-lg rounded-2xl">
+                        <div class="aspect-[4/5] bg-gray-100 dark:bg-[#1a1a1a] overflow-hidden rounded-2xl relative">
+                            <div class="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-400 dark:from-gray-800 dark:to-gray-900 transform group-hover:scale-105 transition-transform duration-[2000ms] ease-out"></div>
+                            <div class="absolute inset-0 flex items-center justify-center opacity-30 mix-blend-overlay">
+                                <span class="font-serif text-[10rem] tracking-widest text-white">S</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- Subjudul -->
-        <p class="mt-2 max-w-md mx-auto text-lg sm:text-xl text-gray-500 md:mt-4 md:max-w-3xl">
-            Platform manajemen konten modern, minimalis, dan elegan. Kelola data Anda dengan fokus dan kesederhanaan.
-        </p>
+                <!-- Story 2 -->
+                <div class="story-block opacity-0 translate-y-12 transition-all duration-[1500ms] ease-out flex flex-col md:flex-row gap-12 items-center">
+                    <div class="flex-1 w-full relative group order-2 md:order-1 shadow-lg rounded-2xl">
+                        <div class="aspect-[4/5] bg-gray-100 dark:bg-[#1a1a1a] overflow-hidden rounded-2xl relative">
+                            <div class="absolute inset-0 bg-gradient-to-tl from-gray-400 to-gray-200 dark:from-gray-900 dark:to-gray-800 transform group-hover:scale-105 transition-transform duration-[2000ms] ease-out"></div>
+                            <div class="absolute inset-0 flex items-center justify-center opacity-30 mix-blend-overlay">
+                                <span class="font-serif italic text-[10rem] tracking-widest text-white">H</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex-1 space-y-6 order-1 md:order-2">
+                        <span class="text-xs tracking-widest uppercase text-gray-500 font-semibold">The Fabric</span>
+                        <h2 class="text-4xl md:text-6xl font-serif font-semibold leading-tight text-gray-900 dark:text-white">
+                            Meticulous <br/> <span class="italic font-light">Craftsmanship.</span>
+                        </h2>
+                        <p class="text-lg text-gray-600 dark:text-gray-300 font-light leading-relaxed max-w-md">
+                            Every thread is carefully selected with intention. We source premium, sustainable fabrics that feel like a second skin. Our silhouettes are stripped of the unnecessary, allowing your true character to shine through the purity of the design.
+                        </p>
+                    </div>
+                </div>
 
-        <div class="mt-10 flex justify-center gap-4">
-            <a href="{{ route('login') }}"
-               class="group relative inline-flex items-center justify-center px-8 py-3 text-base font-medium text-white bg-gray-900 rounded-full shadow-lg hover:bg-black hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900">
-                <span>Masuk ke Dashboard</span>
-                <i class="fa fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-
-                <!-- Efek Glow -->
-                <div class="absolute inset-0 rounded-full ring-2 ring-white/20 group-hover:ring-white/40 transition-all"></div>
-            </a>
+                <!-- Story 3 -->
+                <div class="story-block opacity-0 translate-y-12 transition-all duration-[1500ms] ease-out text-center max-w-3xl mx-auto space-y-8 pt-10">
+                    <div class="w-12 h-12 mx-auto rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center">
+                        <i class="fa-solid fa-gem text-gray-400"></i>
+                    </div>
+                    <h2 class="text-5xl md:text-7xl font-serif font-semibold leading-tight text-gray-900 dark:text-white">
+                        Embrace the <br/><span class="italic font-light">Quiet.</span>
+                    </h2>
+                    <p class="text-xl text-gray-600 dark:text-gray-300 font-light leading-relaxed">
+                        In a world of noise, Shyness is your sartorial sanctuary. A uniform for the modern purist. Step into a realm where less is invariably more.
+                    </p>
+                    <div class="pt-8 pb-32">
+                        <a href="{{ route('login') }}" class="inline-flex items-center justify-center px-10 py-4 text-sm tracking-widest uppercase font-medium text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-transform">
+                            Explore Collection
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- 1. Infinite Marquee -->
+        <div class="marquee-container py-6 border-y border-thin bg-[#0a0a0a] text-white dark:bg-white dark:text-[#0a0a0a] z-20 relative">
+            <div class="marquee-content font-serif text-lg md:text-xl tracking-[0.3em] uppercase italic font-light opacity-90">
+                &nbsp;REFINED ELEGANCE &nbsp;&bull;&nbsp; SUSTAINABLE FABRIC &nbsp;&bull;&nbsp; MODERN PURIST &nbsp;&bull;&nbsp; LIMITED EDITION &nbsp;&bull;&nbsp; REFINED ELEGANCE &nbsp;&bull;&nbsp; SUSTAINABLE FABRIC &nbsp;&bull;&nbsp; MODERN PURIST &nbsp;&bull;&nbsp; LIMITED EDITION &nbsp;&bull;&nbsp; REFINED ELEGANCE &nbsp;&bull;&nbsp; SUSTAINABLE FABRIC &nbsp;&bull;&nbsp; MODERN PURIST &nbsp;&bull;&nbsp; LIMITED EDITION &nbsp;&bull;&nbsp; REFINED ELEGANCE &nbsp;&bull;&nbsp; SUSTAINABLE FABRIC &nbsp;&bull;&nbsp; MODERN PURIST &nbsp;&bull;&nbsp; LIMITED EDITION
+            </div>
         </div>
 
-    </div>
+        <!-- 2. Featured Collection -->
+        <section class="relative z-20 bg-gray-50 dark:bg-[#111] py-32 px-6 sm:px-12 lg:px-24 border-b border-thin cursor-default overflow-hidden">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6 reveal-up opacity-0 translate-y-12 transition-all duration-[1200ms] ease-out">
+                    <div>
+                        <span class="text-xs tracking-widest uppercase text-gray-500 font-semibold">Latest Arrivals</span>
+                        <h2 class="text-4xl md:text-5xl font-serif font-semibold text-gray-900 dark:text-white mt-4">
+                            The Autumn <span class="italic font-light">Edit.</span>
+                        </h2>
+                    </div>
+                    <a href="{{ route('login') }}" class="text-xs tracking-widest uppercase hover:text-gray-500 transition-colors text-black dark:text-white pb-2 flex items-center gap-2">View All Collection <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
 
-    <!-- Footer -->
-    <div class="relative z-10 py-6 text-center">
-        <p class="text-sm text-gray-400">
-            &copy; {{ date('Y') }} Shyness App. All rights reserved.
-        </p>
-    </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+                    @forelse($products as $index => $product)
+                    <!-- Product Item -->
+                    <a href="{{ route('login') }}" class="group block cursor-pointer w-full reveal-up opacity-0 translate-y-12 transition-all duration-[1200ms] ease-out" style="transition-delay: {{ $index * 150 }}ms;">
+                        <div class="bg-[#f5f5f5] dark:bg-[#151515] overflow-hidden relative hover-crossfade w-full" style="aspect-ratio: 3 / 4; min-height: 480px;">
+                            @if($product->image)
+                                <img src="{{ asset('storage/products/' . $product->image) }}" alt="{{ $product->title }}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-105">
+                            @else
+                                <div class="absolute inset-0 bg-gradient-to-t from-[#eaeaea] to-[#f5f5f5] dark:from-[#111] dark:to-[#151515] flex items-center justify-center">
+                                    <span class="font-serif text-[10rem] md:text-[12rem] xl:text-[14rem] leading-none text-black/[0.03] dark:text-white/[0.03] select-none">0{{ $index + 1 }}</span>
+                                </div>
+                            @endif
+                            <div class="absolute inset-0 bg-black/10 dark:bg-black/40 img-hover flex items-center justify-center backdrop-blur-sm transition-all duration-500">
+                                <span class="font-serif italic text-2xl text-white tracking-widest drop-shadow-md">Detail View</span>
+                            </div>
+                        </div>
+                        <div class="mt-8 flex justify-between items-start">
+                            <div>
+                                <h3 class="text-xl font-medium text-gray-900 dark:text-white tracking-wide line-clamp-1 pr-4">{{ $product->title }}</h3>
+                                <p class="text-xs tracking-widest uppercase text-gray-500 mt-2">{{ $product->category->name ?? 'Editorial' }}</p>
+                            </div>
+                            <div class="text-right">
+                                @if($product->is_discount_active && $product->discount_price)
+                                    <span class="block text-xs line-through text-gray-400 mb-1">Rp {{ number_format($product->price, 0, ',', '.') }}</span>
+                                    <span class="text-sm tracking-widest font-medium text-red-600 dark:text-red-400">Rp {{ number_format($product->discount_price, 0, ',', '.') }}</span>
+                                @else
+                                    <span class="text-sm tracking-widest font-medium text-gray-900 dark:text-white">Rp {{ number_format($product->price, 0, ',', '.') }}</span>
+                                @endif
+                            </div>
+                        </div>
+                    </a>
+                    @empty
+                        <div class="col-span-full text-center py-24 object-cover">
+                            <span class="font-serif italic text-2xl text-gray-400 dark:text-gray-600">Coming Soon.</span>
+                            <p class="text-xs uppercase tracking-widest text-gray-500 mt-4">Koleksi sedang dipersiapkan.</p>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+        </section>
 
+        <!-- 3. Lookbook / Journal Gallery -->
+        <section class="relative z-20 bg-white dark:bg-primary py-32 px-6 sm:px-12 lg:px-24 overflow-hidden">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-16 reveal-up opacity-0 translate-y-12 transition-all duration-[1200ms] ease-out">
+                    <h2 class="text-4xl md:text-5xl font-serif italic text-gray-900 dark:text-white">The Journal</h2>
+                </div>
+
+                <div class="flex flex-col lg:flex-row gap-6 items-stretch w-full mb-16">
+                    <!-- Left Tall Image -->
+                    <div class="w-full lg:w-7/12 shrink-0 reveal-up opacity-0 translate-y-12 transition-all duration-[1200ms] ease-out">
+                        <div class="bg-[#f5f5f5] dark:bg-[#111] w-full relative group overflow-hidden" style="min-height: 800px;">
+                            <img src="{{ asset('images/campaign/shyness_vol_1.png') }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-[3000ms] ease-out" alt="Shyness Vol 1">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-12 pointer-events-none">
+                                <span class="font-serif italic text-5xl md:text-7xl text-white tracking-wide mb-4">Shyness <br/>Vol. 01</span>
+                                <span class="text-xs tracking-widest uppercase text-gray-300 font-medium">Read The Editorial</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Smaller Images -->
+                    <div class="w-full lg:w-5/12 flex flex-col gap-6">
+                        <div class="bg-[#f5f5f5] dark:bg-[#111] w-full relative group overflow-hidden flex-1 reveal-up opacity-0 translate-y-12 transition-all duration-[1200ms] delay-150 ease-out" style="min-height: 388px;">
+                            <img src="{{ asset('images/campaign/fabric.png') }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-[3000ms] ease-out" alt="Fabric">
+                            <div class="absolute inset-0 bg-black/40 hover:bg-black/20 transition-colors duration-700 flex items-center justify-center">
+                                 <div class="text-center">
+                                     <span class="block font-serif text-8xl text-white/90 mb-4 drop-shadow-md">F</span>
+                                     <span class="text-xs uppercase tracking-[0.3em] text-white">Fabric</span>
+                                 </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-[#f5f5f5] dark:bg-[#111] w-full relative group overflow-hidden flex-1 reveal-up opacity-0 translate-y-12 transition-all duration-[1200ms] delay-300 ease-out" style="min-height: 388px;">
+                            <img src="{{ asset('images/campaign/details.png') }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-[3000ms] ease-out" alt="Details">
+                            <div class="absolute inset-0 bg-black/40 hover:bg-black/20 transition-colors duration-700 flex items-center justify-center">
+                                 <div class="text-center">
+                                     <span class="block font-serif italic text-6xl text-white/90 mb-4 drop-shadow-md">&amp;</span>
+                                     <span class="text-xs uppercase tracking-[0.3em] text-white">Details</span>
+                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center reveal-up opacity-0 translate-y-12 transition-all duration-[1200ms] ease-out">
+                    <a href="{{ route('login') }}" class="text-xs tracking-[0.2em] uppercase hover:text-gray-500 transition-colors border-b border-black dark:border-white font-medium pb-2 inline-flex items-center gap-3">
+                        View Entire Journal <i class="fa-solid fa-arrow-right text-gray-400"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Newsletter Subscription -->
+        <section class="relative z-20 bg-gray-100 dark:bg-[#0a0a0a] py-32 px-6 sm:px-12 overflow-hidden">
+            <div class="max-w-2xl mx-auto text-center space-y-8 reveal-up opacity-0 translate-y-12 transition-all duration-[1200ms] ease-out">
+                <i class="fa-regular fa-envelope text-2xl text-gray-400"></i>
+                <h2 class="text-3xl md:text-5xl font-serif font-semibold text-gray-900 dark:text-white">
+                    Join the <span class="italic font-light">Inner Circle.</span>
+                </h2>
+                <p class="text-gray-600 dark:text-gray-400 font-light text-lg">
+                    Access exclusive releases, private sales, and curated editorial content before anyone else.
+                </p>
+
+                <form class="mt-10 flex flex-col sm:flex-row gap-4 max-w-md mx-auto relative group">
+                    <input type="email" placeholder="Enter your email address" class="w-full bg-transparent border-b border-gray-400 dark:border-gray-600 py-4 px-2 text-center sm:text-left focus:outline-none focus:border-black dark:focus:border-white transition-colors" required>
+                    <button type="button" class="mt-4 sm:mt-0 px-8 py-4 sm:absolute sm:right-0 sm:bottom-0 sm:bg-transparent font-medium text-sm tracking-widest uppercase hover:text-gray-500 transition-colors">Subscribe</button>
+                    <!-- Animated bottom line on focus -->
+                    <div class="absolute bottom-0 left-0 w-full h-[1px] bg-black dark:bg-white scale-x-0 group-focus-within:scale-x-100 transition-transform origin-left duration-500"></div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <!-- 5. Mega Footer -->
+    <footer class="bg-white dark:bg-primary pt-24 pb-12 px-6 sm:px-12 lg:px-24 border-t border-thin transition-colors relative z-10 overflow-hidden">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-24">
+            <!-- Brand -->
+            <div class="col-span-1 md:col-span-1 text-center md:text-left reveal-up opacity-0 translate-y-12 transition-all duration-[1200ms] ease-out">
+                <div class="text-3xl font-serif font-semibold tracking-widest uppercase mb-6">Shyness</div>
+                <p class="text-sm text-gray-500 dark:text-gray-400 font-light leading-relaxed mb-6">
+                    Redefining modern luxury through absolute simplicity and uncompromising craftsmanship.
+                </p>
+                <div class="flex items-center justify-center md:justify-start gap-4">
+                    <a href="#" class="w-10 h-10 rounded-full border border-thin flex items-center justify-center hover:bg-gray-50 dark:hover:bg-[#1a1a1a] transition-colors"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" class="w-10 h-10 rounded-full border border-thin flex items-center justify-center hover:bg-gray-50 dark:hover:bg-[#1a1a1a] transition-colors"><i class="fa-brands fa-tiktok"></i></a>
+                    <a href="#" class="w-10 h-10 rounded-full border border-thin flex items-center justify-center hover:bg-gray-50 dark:hover:bg-[#1a1a1a] transition-colors"><i class="fa-brands fa-pinterest-p"></i></a>
+                </div>
+            </div>
+
+            <!-- Shop -->
+            <div class="text-center md:text-left reveal-up opacity-0 translate-y-12 transition-all duration-[1200ms] delay-100 ease-out">
+                <h4 class="text-xs font-semibold tracking-widest uppercase text-gray-900 dark:text-white mb-6">Shop</h4>
+                <ul class="space-y-4 text-sm font-light text-gray-500 dark:text-gray-400">
+                    <li><a href="#" class="hover:text-black dark:hover:text-white transition-colors">All Products</a></li>
+                    <li><a href="#" class="hover:text-black dark:hover:text-white transition-colors">New Arrivals</a></li>
+                    <li><a href="#" class="hover:text-black dark:hover:text-white transition-colors">Tops & Shirts</a></li>
+                    <li><a href="#" class="hover:text-black dark:hover:text-white transition-colors">Bottoms</a></li>
+                    <li><a href="#" class="hover:text-black dark:hover:text-white transition-colors">Outerwear</a></li>
+                    <li><a href="#" class="hover:text-black dark:hover:text-white transition-colors">Accessories</a></li>
+                </ul>
+            </div>
+
+            <!-- Customer Care -->
+            <div class="text-center md:text-left reveal-up opacity-0 translate-y-12 transition-all duration-[1200ms] delay-200 ease-out">
+                <h4 class="text-xs font-semibold tracking-widest uppercase text-gray-900 dark:text-white mb-6">Customer Care</h4>
+                <ul class="space-y-4 text-sm font-light text-gray-500 dark:text-gray-400">
+                    <li><a href="#" class="hover:text-black dark:hover:text-white transition-colors">Contact Us</a></li>
+                    <li><a href="#" class="hover:text-black dark:hover:text-white transition-colors">Shipping & Returns</a></li>
+                    <li><a href="#" class="hover:text-black dark:hover:text-white transition-colors">Size Guide</a></li>
+                    <li><a href="#" class="hover:text-black dark:hover:text-white transition-colors">FAQ</a></li>
+                    <li><a href="#" class="hover:text-black dark:hover:text-white transition-colors">Track Order</a></li>
+                </ul>
+            </div>
+
+            <!-- About -->
+            <div class="text-center md:text-left reveal-up opacity-0 translate-y-12 transition-all duration-[1200ms] delay-300 ease-out">
+                <h4 class="text-xs font-semibold tracking-widest uppercase text-gray-900 dark:text-white mb-6">About</h4>
+                <ul class="space-y-4 text-sm font-light text-gray-500 dark:text-gray-400">
+                    <li><a href="#" class="hover:text-black dark:hover:text-white transition-colors">Our Story</a></li>
+                    <li><a href="#" class="hover:text-black dark:hover:text-white transition-colors">Journal</a></li>
+                    <li><a href="#" class="hover:text-black dark:hover:text-white transition-colors">Sustainability</a></li>
+                    <li><a href="#" class="hover:text-black dark:hover:text-white transition-colors">Careers</a></li>
+                    <li><a href="#" class="hover:text-black dark:hover:text-white transition-colors">Terms & Privacy</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto pt-8 border-t border-thin flex flex-col md:flex-row items-center justify-between gap-4 reveal-up opacity-0 translate-y-12 transition-all duration-[1200ms] delay-[400ms] ease-out">
+            <p class="text-xs tracking-widest uppercase text-gray-500 dark:text-gray-400">
+                &copy; {{ date('Y') }} Shyness. All Rights Reserved.
+            </p>
+            <div class="flex items-center gap-4 text-sm text-gray-400">
+                <i class="fa-brands fa-cc-visa hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer"></i>
+                <i class="fa-brands fa-cc-mastercard hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer"></i>
+                <i class="fa-brands fa-cc-amex hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer"></i>
+                <i class="fa-brands fa-cc-paypal hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer"></i>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('sequence-canvas');
+        const context = canvas.getContext('2d');
+        const frameCount = 266;
+
+        const currentFrame = index => `/sequence/ezgif-frame-${index.toString().padStart(3, '0')}.jpg`;
+
+        const images = [];
+        
+        // Preload all frames
+        for (let i = 1; i <= frameCount; i++) {
+            const img = new Image();
+            img.src = currentFrame(i);
+            images.push(img);
+        }
+
+        function drawImage(imgObj) {
+            if (!imgObj.complete || imgObj.naturalWidth === 0) return;
+            
+            const dpRatio = window.devicePixelRatio || 1;
+            canvas.width = window.innerWidth * dpRatio;
+            canvas.height = window.innerHeight * dpRatio;
+            canvas.style.width = `${window.innerWidth}px`;
+            canvas.style.height = `${window.innerHeight}px`;
+            context.scale(dpRatio, dpRatio);
+            
+            const hRatio = window.innerWidth / imgObj.naturalWidth;
+            const wRatio = window.innerHeight / imgObj.naturalHeight;
+            const ratio = Math.max(hRatio, wRatio);
+            const centerShift_x = (window.innerWidth - imgObj.naturalWidth * ratio) / 2;
+            const centerShift_y = (window.innerHeight - imgObj.naturalHeight * ratio) / 2;
+            
+            context.clearRect(0, 0, window.innerWidth, window.innerHeight);
+            context.drawImage(imgObj, 0, 0, imgObj.naturalWidth, imgObj.naturalHeight,
+                              centerShift_x, centerShift_y, imgObj.naturalWidth * ratio, imgObj.naturalHeight * ratio);
+        }
+
+        images[0].onload = () => drawImage(images[0]);
+
+        // Fallback draw in case it caches fast
+        setTimeout(() => drawImage(images[0]), 100);
+
+        window.addEventListener('resize', () => {
+            const maxScroll = document.querySelector('.sequence-container').scrollHeight - window.innerHeight;
+            let scrollFraction = document.documentElement.scrollTop / maxScroll;
+            if(isNaN(scrollFraction)) scrollFraction = 0;
+            const frameIndex = Math.min(frameCount - 1, Math.max(0, Math.floor(scrollFraction * frameCount)));
+            drawImage(images[frameIndex]);
+        });
+
+        window.addEventListener('scroll', () => {
+            const maxScroll = document.querySelector('.sequence-container').scrollHeight - window.innerHeight;
+            let scrollFraction = document.documentElement.scrollTop / maxScroll;
+            if(isNaN(scrollFraction)) scrollFraction = 0;
+            const frameIndex = Math.min(frameCount - 1, Math.max(0, Math.floor(scrollFraction * frameCount)));
+            
+            requestAnimationFrame(() => {
+                if (images[frameIndex]) {
+                    drawImage(images[frameIndex]);
+                }
+            });
+        });
+
+        // Intersection Observer for Animation In & Out (Scroll Animations)
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.15
+        };
+
+        const scrollObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                } else {
+                    entry.target.classList.remove('active');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.story-block, .reveal-up').forEach(block => {
+            // Also initialize standard reveal classes on story blocks for fallback safety
+            if(block.classList.contains('story-block')) {
+                 block.classList.add('reveal-up');
+            }
+            scrollObserver.observe(block);
+        });
+    </script>
 </body>
 </html>

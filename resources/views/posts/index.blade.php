@@ -1,222 +1,220 @@
 @extends('layouts.app')
 
-@section('title', 'Manajemen Post - Shyness')
+@section('title', 'Posts - Shyness')
 
 @section('content')
-    <!-- STATISTIK CARDS -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <!-- Card 1 -->
-        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex items-center justify-between">
-            <div>
-                <p class="text-sm font-medium text-gray-500">Total Post</p>
-                <p class="text-3xl font-bold text-gray-900 mt-1">{{ $posts->total() }}</p>
-            </div>
-            <div class="p-3 bg-gray-50 rounded-full text-gray-600">
-                <i class="fa fa-layer-group text-xl"></i>
-            </div>
+    <div class="mb-12 border-b border-thin dark:border-gray-800 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4 transition-colors">
+        <div>
+            <h1 class="text-3xl font-serif font-medium text-primary dark:text-white mb-2 transition-colors">Journal & Posts</h1>
+            <p class="text-xs tracking-widest uppercase text-secondary">Content Management</p>
         </div>
-        <!-- Card 2 -->
-        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex items-center justify-between">
-            <div>
-                <p class="text-sm font-medium text-gray-500">Terbaru</p>
-                <p class="text-sm font-bold text-gray-900 mt-1 truncate w-32">
-                    {{ $posts->first() ? $posts->first()->title : '-' }}
-                </p>
-            </div>
-            <div class="p-3 bg-gray-50 rounded-full text-gray-600">
-                <i class="fa fa-clock text-xl"></i>
-            </div>
-        </div>
-        <!-- Card 3 -->
-        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex items-center justify-between">
-            <div>
-                <p class="text-sm font-medium text-gray-500">Status System</p>
-                <p class="text-sm font-bold text-gray-900 mt-1 flex items-center gap-1">
-                    <span class="w-2 h-2 bg-gray-900 rounded-full animate-pulse"></span> Online
-                </p>
-            </div>
-            <div class="p-3 bg-gray-50 rounded-full text-gray-600">
-                <i class="fa fa-server text-xl"></i>
+        
+        <div class="flex flex-col sm:flex-row items-center gap-4">
+            <!-- SEARCH BAR -->
+            <form action="{{ route('posts.index') }}" method="GET" class="relative group w-full sm:w-auto">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fa-solid fa-magnifying-glass text-secondary text-xs"></i>
+                </div>
+                <input type="text" name="search" placeholder="Search journal..."
+                    class="pl-10 pr-4 py-2.5 w-full sm:w-64 bg-transparent border border-thin dark:border-gray-700 text-sm focus:outline-none focus:border-black dark:focus:border-white transition-colors dark:text-white placeholder-gray-400"
+                    value="{{ request('search') }}">
+            </form>
+
+            <div class="flex items-center gap-4 w-full sm:w-auto mt-4 sm:mt-0">
+                <!-- TOGGLE VIEW BUTTONS -->
+                <div class="flex border border-thin dark:border-gray-700 p-1">
+                    <button id="btnList" onclick="switchView('list')" class="w-8 h-8 flex items-center justify-center text-xs transition-colors bg-black text-white dark:bg-white dark:text-black">
+                        <i class="fa-solid fa-list"></i>
+                    </button>
+                    <button id="btnGrid" onclick="switchView('grid')" class="w-8 h-8 flex items-center justify-center text-xs transition-colors text-secondary hover:text-black dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <i class="fa-solid fa-border-all"></i>
+                    </button>
+                </div>
+
+                @if(auth()->user()->isAdmin())
+                    <a href="{{ route('posts.create') }}" class="px-6 py-2.5 bg-primary text-white dark:bg-white dark:text-primary text-xs tracking-widest uppercase font-medium hover:bg-black dark:hover:bg-gray-200 transition-colors shrink-0">
+                        <i class="fa-solid fa-plus mr-2"></i> New Post
+                    </a>
+                @endif
             </div>
         </div>
     </div>
 
-    <!-- Header & Toolbar -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-900">Konten & Artikel</h2>
-            <p class="text-sm text-gray-500">Manajemen seluruh data postingan Anda.</p>
+    <!-- STATISTIK CARDS -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div class="p-6 border border-thin dark:border-gray-800 bg-white dark:bg-primary transition-colors flex flex-col">
+            <span class="text-xs tracking-widest uppercase text-secondary mb-4">Total Posts</span>
+            <span class="text-4xl font-serif text-primary dark:text-white">{{ $posts->total() }}</span>
         </div>
-
-        <div class="flex flex-col sm:flex-row gap-3">
-            <!-- SEARCH BAR -->
-            <form action="{{ route('posts.index') }}" method="GET" class="relative group">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i class="fa fa-search text-gray-400 group-focus-within:text-gray-800 transition-colors"></i>
-                </div>
-                <input type="text" name="search" placeholder="Cari judul..."
-                    class="pl-10 pr-4 py-2 w-full sm:w-64 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all bg-white"
-                    value="{{ request('search') }}">
-            </form>
-
-            <!-- TOGGLE VIEW BUTTONS -->
-            <div class="flex bg-white rounded-lg border border-gray-300 p-1 shadow-sm h-10 items-center">
-                <button id="btnList" onclick="switchView('list')" class="p-1.5 px-3 rounded-md text-gray-900 bg-gray-100 transition-all">
-                    <i class="fa fa-list"></i>
-                </button>
-                <button id="btnGrid" onclick="switchView('grid')" class="p-1.5 px-3 rounded-md text-gray-500 hover:bg-gray-50 transition-all">
-                    <i class="fa fa-th-large"></i>
-                </button>
+        <div class="p-6 border border-thin dark:border-gray-800 bg-white dark:bg-primary transition-colors flex flex-col">
+            <span class="text-xs tracking-widest uppercase text-secondary mb-4">Latest Entry</span>
+            <span class="text-lg font-serif text-primary dark:text-white truncate" title="{{ $posts->first() ? $posts->first()->title : '-' }}">
+                {{ $posts->first() ? $posts->first()->title : '-' }}
+            </span>
+        </div>
+        <div class="p-6 border border-thin dark:border-gray-800 bg-white dark:bg-primary transition-colors flex flex-col">
+            <span class="text-xs tracking-widest uppercase text-secondary mb-4">System Status</span>
+            <div class="flex items-center gap-2 mt-auto">
+                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                <span class="text-sm text-primary dark:text-white font-medium">Online</span>
             </div>
-
-            @if(auth()->user()->isAdmin())
-                <a href="{{ route('posts.create') }}" class="inline-flex items-center justify-center px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-black transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                    <i class="fa fa-plus mr-2"></i> Tambah
-                </a>
-            @endif
         </div>
     </div>
 
     <!-- VIEW 1: TABLE / LIST (Default) -->
-    <div id="listView" class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden fade-in">
-        <div class="overflow-x-auto custom-scrollbar">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-32">Visual</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Detail Post</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-32">Kategori</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-32">Status</th>
-                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider w-40">Aksi</th>
+    <div id="listView" class="bg-gray-50 dark:bg-[#151515] border border-thin dark:border-gray-800 transition-colors duration-300">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-thin dark:border-gray-800 text-xs tracking-widest uppercase text-secondary">
+                        <th class="p-6 font-medium w-32">Visual</th>
+                        <th class="p-6 font-medium">Entry Detail</th>
+                        <th class="p-6 font-medium w-40">Category</th>
+                        <th class="p-6 font-medium w-32">Status</th>
+                        <th class="p-6 font-medium text-center w-32">Action</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200">
+                <tbody class="text-sm font-light text-primary dark:text-gray-300">
                     @forelse ($posts as $post)
-                        <tr class="hover:bg-gray-50 transition-colors group">
-                            <td class="px-6 py-4">
-                                <div class="h-16 w-24 rounded-lg overflow-hidden border border-gray-200 relative">
-                                    <img class="h-full w-full object-cover transform group-hover:scale-110 transition-transform duration-300"
-                                         src="{{ asset('storage/posts/'.$post->image) }}" alt="Img">
+                        <tr class="border-b border-thin dark:border-gray-800 last:border-0 hover:bg-white dark:hover:bg-gray-900 transition-colors group">
+                            <td class="p-6">
+                                <a href="{{ route('posts.show', $post->id) }}" class="block w-24 h-32 overflow-hidden bg-gray-100 dark:bg-gray-800">
+                                    <img class="w-full h-full object-cover filter grayscale hover:grayscale-0 transition-all duration-500 group-hover:scale-105"
+                                         src="{{ asset('storage/posts/'.$post->image) }}" alt="Post image">
+                                </a>
+                            </td>
+                            <td class="p-6 align-top pt-6">
+                                <div class="font-serif text-lg text-primary dark:text-white mb-2">{{ $post->title }}</div>
+                                <div class="text-xs text-secondary line-clamp-2 md:line-clamp-3 mb-4 leading-relaxed max-w-xl">
+                                    {!! strip_tags($post->content) !!}
+                                </div>
+                                <div class="text-xs text-gray-400 dark:text-gray-500 font-mono tracking-widest uppercase">
+                                    {{ $post->created_at->format('M d, Y') }}
                                 </div>
                             </td>
-                            <td class="px-6 py-4">
-                                <div class="text-sm font-bold text-gray-900">{{ $post->title }}</div>
-                                <div class="text-xs text-gray-500 mt-1 line-clamp-1">{!! strip_tags($post->content) !!}</div>
-                                <div class="mt-2 text-xs text-gray-400">
-                                    <i class="fa fa-calendar mr-1"></i> {{ $post->created_at->format('d M Y') }}
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
-                                    {{ $post->category->name ?? 'Tanpa Kategori' }}
+                            <td class="p-6 align-top pt-6">
+                                <span class="text-xs border border-thin dark:border-gray-700 px-3 py-1 tracking-widest uppercase rounded-sm text-secondary bg-white dark:bg-black">
+                                    {{ $post->category->name ?? 'General' }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="p-6 align-top pt-6">
                                 @if ($post->status == 'publish')
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-900 text-white border border-transparent shadow-sm">
-                                        <span class="w-1.5 h-1.5 bg-white rounded-full mr-1.5"></span>
-                                        Published
+                                    <span class="inline-flex items-center text-xs tracking-widest uppercase text-primary dark:text-white">
+                                        <span class="w-1.5 h-1.5 bg-primary dark:bg-white rounded-full mr-2"></span> Published
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-300">
-                                        <span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-1.5"></span>
-                                        Draft
+                                    <span class="inline-flex items-center text-xs tracking-widest uppercase text-secondary">
+                                        <span class="w-1.5 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full mr-2"></span> Draft
                                     </span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 text-center">
-                                <div class="flex justify-center space-x-2 opacity-60 group-hover:opacity-100 transition-opacity">
-                                    <a href="{{ route('posts.show', $post->id) }}" class="p-2 text-gray-500 hover:text-gray-900 transition-colors" title="Lihat"><i class="fa fa-eye"></i></a>
+                            <td class="p-6 align-top pt-6 text-center">
+                                <div class="flex justify-center space-x-4 opacity-50 group-hover:opacity-100 transition-opacity">
+                                    <a href="{{ route('posts.show', $post->id) }}" class="text-secondary hover:text-black dark:hover:text-white transition-colors" title="View"><i class="fa-solid fa-eye"></i></a>
                                     @if(auth()->user()->isAdmin())
-                                        <a href="{{ route('posts.edit', $post->id) }}" class="p-2 text-gray-500 hover:text-gray-900 transition-colors" title="Edit"><i class="fa fa-pencil"></i></a>
-                                        <button onclick="openDeleteModal('{{ route('posts.destroy', $post->id) }}', '{{ $post->title }}')" class="p-2 text-gray-500 hover:text-red-600 transition-colors" title="Hapus"><i class="fa fa-trash"></i></button>
+                                        <a href="{{ route('posts.edit', $post->id) }}" class="text-secondary hover:text-black dark:hover:text-white transition-colors" title="Edit"><i class="fa-solid fa-pen-nib"></i></a>
+                                        <button onclick="openDeleteModal('{{ route('posts.destroy', $post->id) }}', '{{ addslashes($post->title) }}')" class="text-secondary hover:text-red-500 transition-colors" title="Delete"><i class="fa-solid fa-xmark"></i></button>
                                     @endif
                                 </div>
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="px-6 py-10 text-center text-gray-500">Data tidak ditemukan.</td></tr>
+                        <tr><td colspan="5" class="p-12 text-center text-sm font-light text-secondary">No entries found.</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-        <div class="bg-gray-50 px-4 py-3 border-t border-gray-200 sm:px-6">
-            {{ $posts->links() }}
-        </div>
+        @if($posts->hasPages())
+            <div class="p-6 border-t border-thin dark:border-gray-800 bg-white dark:bg-primary transition-colors">
+                {{ $posts->links() }}
+            </div>
+        @endif
     </div>
 
     <!-- VIEW 2: GRID / CARD (Hidden by default) -->
-    <div id="gridView" class="hidden fade-in">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div id="gridView" class="hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             @forelse ($posts as $post)
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col h-full relative">
-                    <div class="absolute top-3 left-3 z-10">
-                        @if ($post->status == 'publish')
-                            <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-bold bg-gray-900/90 text-white backdrop-blur-sm shadow-sm">Published</span>
-                        @else
-                            <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-bold bg-white/90 text-gray-600 backdrop-blur-sm shadow-sm border border-gray-200">Draft</span>
-                        @endif
-                    </div>
-                    <div class="h-48 overflow-hidden relative">
-                        <img class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+                <div class="group border border-thin dark:border-gray-800 bg-white dark:bg-[#111111] hover:border-black dark:hover:border-white transition-colors duration-300 flex flex-col">
+                    <a href="{{ route('posts.show', $post->id) }}" class="block h-72 overflow-hidden bg-gray-100 dark:bg-gray-900 w-full relative">
+                        <img class="w-full h-full object-cover filter grayscale hover:grayscale-0 transition-all duration-700"
                              src="{{ asset('storage/posts/'.$post->image) }}" alt="{{ $post->title }}">
-                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-                            <a href="{{ route('posts.show', $post->id) }}" class="bg-white text-gray-900 rounded-full p-3 shadow-lg hover:scale-110 transition-transform">
-                                <i class="fa fa-arrow-right"></i>
-                            </a>
+                        <div class="absolute top-4 right-4 flex gap-2">
+                             @if ($post->status == 'publish')
+                                <span class="px-2 py-1 bg-white dark:bg-black text-black dark:text-white text-[10px] tracking-widest uppercase font-medium">Published</span>
+                            @else
+                                <span class="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-500 text-[10px] tracking-widest uppercase font-medium">Draft</span>
+                            @endif
                         </div>
-                    </div>
-                    <div class="p-5 flex-1 flex flex-col">
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="text-xs font-bold tracking-wide uppercase text-gray-500 border border-gray-200 px-2 py-0.5 rounded-md">
+                    </a>
+                    <div class="p-6 flex-1 flex flex-col">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-[10px] tracking-widest uppercase text-secondary">
                                 {{ $post->category->name ?? 'General' }}
                             </span>
-                            <span class="text-xs text-gray-400"><i class="fa fa-calendar mr-1"></i> {{ $post->created_at->format('d M') }}</span>
+                            <span class="text-[10px] text-gray-400 font-mono tracking-widest">{{ $post->created_at->format('M d, Y') }}</span>
                         </div>
-                        <h3 class="text-lg font-bold text-gray-900 mb-2 leading-tight group-hover:text-gray-600 transition-colors">
-                            {{ Str::limit($post->title, 40) }}
+                        <h3 class="text-xl font-serif text-primary dark:text-white mb-3 line-clamp-2">
+                            <a href="{{ route('posts.show', $post->id) }}" class="hover:opacity-70 transition-opacity">{{ $post->title }}</a>
                         </h3>
-                        <p class="text-gray-500 text-sm line-clamp-3 mb-4 flex-1">
+                        <p class="text-sm font-light text-secondary line-clamp-3 mb-6 flex-1 leading-relaxed">
                             {!! strip_tags($post->content) !!}
                         </p>
+                        
                         @if(auth()->user()->isAdmin())
-                            <div class="pt-4 border-t border-gray-100 flex items-center justify-between">
-                                <a href="{{ route('posts.edit', $post->id) }}" class="text-sm font-medium text-gray-600 hover:text-black transition-colors">Edit Post</a>
-                                <button onclick="openDeleteModal('{{ route('posts.destroy', $post->id) }}', '{{ $post->title }}')" class="text-gray-400 hover:text-red-600 transition-colors"><i class="fa fa-trash"></i></button>
+                            <div class="pt-4 border-t border-thin dark:border-gray-800 flex items-center justify-between text-xs tracking-widest uppercase font-medium">
+                                <a href="{{ route('posts.edit', $post->id) }}" class="text-secondary hover:text-primary dark:hover:text-white transition-colors">Edit</a>
+                                <button onclick="openDeleteModal('{{ route('posts.destroy', $post->id) }}', '{{ addslashes($post->title) }}')" class="text-secondary hover:text-red-500 transition-colors">Delete</button>
                             </div>
+                        @else
+                            <a href="{{ route('posts.show', $post->id) }}" class="text-xs tracking-widest uppercase font-medium text-primary dark:text-white hover:opacity-70 transition-opacity mt-auto">Read More &rarr;</a>
                         @endif
                     </div>
                 </div>
             @empty
-                <div class="col-span-3 text-center py-12 text-gray-500">Data tidak ditemukan.</div>
+                <div class="col-span-1 border border-thin dark:border-gray-800 md:col-span-2 lg:col-span-3 text-center py-24 bg-gray-50 dark:bg-[#151515] transition-colors text-secondary text-sm font-light">
+                    No entries found.
+                </div>
             @endforelse
         </div>
-        <div class="mt-6">{{ $posts->links() }}</div>
+        @if($posts->hasPages())
+            <div class="mt-8 border-t border-thin dark:border-gray-800 pt-6">
+                {{ $posts->links() }}
+            </div>
+        @endif
     </div>
 
     <!-- Modal Delete -->
     <div id="deleteModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-gray-800 bg-opacity-75 transition-opacity backdrop-blur-sm" onclick="closeModal()"></div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-gray-200">
-                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:p-0">
+            <div class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
+            
+            <div class="inline-block align-bottom bg-white dark:bg-primary text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-thin dark:border-gray-700">
+                <div class="px-8 pt-8 pb-6">
                     <div class="sm:flex sm:items-start">
-                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 sm:mx-0 sm:h-10 sm:w-10">
-                            <i class="fa fa-trash text-gray-800"></i>
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-50 dark:bg-red-900/20 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fa-solid fa-xmark text-red-600"></i>
                         </div>
-                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Hapus Post</h3>
-                            <div class="mt-2"><p class="text-sm text-gray-500">Yakin hapus <strong id="deletePostTitle"></strong>? Tindakan ini permanen.</p></div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-6 sm:text-left flex-1">
+                            <h3 class="text-xl font-serif text-primary dark:text-white" id="modal-title">Delete Entry</h3>
+                            <div class="mt-4">
+                                <p class="text-sm font-light text-secondary leading-relaxed">
+                                    Are you sure you want to delete <strong id="deletePostTitle" class="font-medium text-black dark:text-white"></strong>? This action cannot be undone.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-gray-100">
-                    <form id="deleteForm" action="" method="POST" class="w-full sm:w-auto sm:ml-3">
+                <div class="px-8 py-6 bg-gray-50 dark:bg-[#151515] sm:flex sm:flex-row-reverse gap-3 border-t border-thin dark:border-gray-700">
+                    <form id="deleteForm" action="" method="POST" class="w-full sm:w-auto">
                         @csrf @method('DELETE')
-                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gray-900 text-base font-medium text-white hover:bg-black focus:outline-none sm:text-sm">Hapus</button>
+                        <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-red-600 text-white text-xs tracking-widest uppercase font-medium hover:bg-black transition-colors focus:outline-none">
+                            Permanently Delete
+                        </button>
                     </form>
-                    <button onclick="closeModal()" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:w-auto sm:text-sm">Batal</button>
+                    <button onclick="closeModal()" type="button" class="mt-3 sm:mt-0 w-full sm:w-auto px-6 py-2.5 bg-white dark:bg-transparent border border-thin dark:border-gray-600 text-primary dark:text-white text-xs tracking-widest uppercase font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors focus:outline-none">
+                        Cancel
+                    </button>
                 </div>
             </div>
         </div>
@@ -239,26 +237,33 @@
             const btnList = document.getElementById('btnList');
             const btnGrid = document.getElementById('btnGrid');
 
+            const activeClassesList = ['bg-black', 'text-white', 'dark:bg-white', 'dark:text-black'];
+            const inactiveClassesList = ['text-secondary', 'hover:text-black', 'dark:hover:text-white', 'hover:bg-gray-50', 'dark:hover:bg-gray-800'];
+
             if (view === 'list') {
                 listView.classList.remove('hidden');
                 gridView.classList.add('hidden');
-                btnList.classList.add('bg-gray-100', 'text-gray-900');
-                btnList.classList.remove('text-gray-500', 'hover:bg-gray-50');
-                btnGrid.classList.remove('bg-gray-100', 'text-gray-900');
-                btnGrid.classList.add('text-gray-500', 'hover:bg-gray-50');
+                
+                btnList.classList.add(...activeClassesList);
+                btnList.classList.remove(...inactiveClassesList);
+                
+                btnGrid.classList.remove(...activeClassesList);
+                btnGrid.classList.add(...inactiveClassesList);
             } else {
                 listView.classList.add('hidden');
                 gridView.classList.remove('hidden');
-                btnGrid.classList.add('bg-gray-100', 'text-gray-900');
-                btnGrid.classList.remove('text-gray-500', 'hover:bg-gray-50');
-                btnList.classList.remove('bg-gray-100', 'text-gray-900');
-                btnList.classList.add('text-gray-500', 'hover:bg-gray-50');
+                
+                btnGrid.classList.add(...activeClassesList);
+                btnGrid.classList.remove(...inactiveClassesList);
+                
+                btnList.classList.remove(...activeClassesList);
+                btnList.classList.add(...inactiveClassesList);
             }
-            localStorage.setItem('preferredView', view);
+            localStorage.setItem('preferredPostView', view);
         }
         document.addEventListener("DOMContentLoaded", function() {
-            const savedView = localStorage.getItem('preferredView');
-            if(savedView) { switchView(savedView); }
+            const savedView = localStorage.getItem('preferredPostView');
+            if(savedView) { switchView(savedView); } else { switchView('list'); }
         });
     </script>
 @endpush

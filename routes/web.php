@@ -9,8 +9,13 @@ use App\Http\Controllers\VideoController;
 use App\Http\Controllers\AuthController;
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    $products = \App\Models\Product::with('category')
+        ->where('status', 'active')
+        ->latest()
+        ->take(3)
+        ->get();
+    return view('welcome', compact('products'));
+})->name('welcome');
 
 // Authentication Routes
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -25,6 +30,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('/categories', CategoryController::class);
     Route::resource('/products', ProductController::class);
     Route::resource('/videos', VideoController::class);
+    Route::resource('/banners', App\Http\Controllers\BannerController::class);
 
     // Cart Routes
     Route::resource('/cart', App\Http\Controllers\CartController::class)->only(['index', 'store', 'update', 'destroy']);

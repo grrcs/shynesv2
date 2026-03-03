@@ -22,7 +22,7 @@ class CartController extends Controller
     /**
      * Add a product to the cart.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request)
     {
         $request->validate([
             'product_id' => 'required|exists:products,id',
@@ -33,7 +33,10 @@ class CartController extends Controller
 
         // Check stock
         if ($product->stock < $request->quantity) {
-             return back()->with('error', 'Stok tidak mencukupi!');
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Stok tidak mencukupi!']);
+            }
+            return back()->with('error', 'Stok tidak mencukupi!');
         }
 
         // Check if item already in cart
@@ -42,16 +45,49 @@ class CartController extends Controller
                             ->first();
 
         if ($cartItem) {
+            // Check discount limit
+            if ($product->is_discount_active && $product->discount_limit) {
+                if (($cartItem->quantity + $request->quantity) > $product->discount_limit) {
+                    if ($request->expectsJson()) {
+                        return response()->json(['success' => false, 'message' => 'Melebihi limit promo produk (Max: '.$product->discount_limit.')']);
+                    }
+                    return back()->with('error', 'Melebihi limit promo produk (Max: '.$product->discount_limit.')');
+                }
+            }
+
             // Update quantity if total doesn't exceed stock
             if (($cartItem->quantity + $request->quantity) > $product->stock) {
-                 return back()->with('error', 'Stok tidak mencukupi untuk penambahan ini!');
+                if ($request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Stok tidak mencukupi untuk penambahan ini!']);
+                }
+                return back()->with('error', 'Stok tidak mencukupi untuk penambahan ini!');
             }
             $cartItem->increment('quantity', $request->quantity);
         } else {
+            // Check discount limit for new item
+            if ($product->is_discount_active && $product->discount_limit) {
+                if ($request->quantity > $product->discount_limit) {
+                    if ($request->expectsJson()) {
+                        return response()->json(['success' => false, 'message' => 'Melebihi limit promo produk (Max: '.$product->discount_limit.')']);
+                    }
+                    return back()->with('error', 'Melebihi limit promo produk (Max: '.$product->discount_limit.')');
+                }
+            }
+
             CartItem::create([
                 'user_id'    => auth()->id(),
                 'product_id' => $product->id,
                 'quantity'   => $request->quantity,
+            ]);
+        }
+
+        $cartCount = CartItem::where('user_id', auth()->id())->sum('quantity');
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true, 
+                'message' => 'Produk ditambahkan ke keranjang!',
+                'cart_count' => $cartCount
             ]);
         }
 
@@ -72,6 +108,13 @@ class CartController extends Controller
         // Check stock
         if ($cartItem->product->stock < $request->quantity) {
              return back()->with('error', 'Stok tidak mencukupi!');
+        }
+
+        // Check discount limit
+        if ($cartItem->product->is_discount_active && $cartItem->product->discount_limit) {
+            if ($request->quantity > $cartItem->product->discount_limit) {
+                return back()->with('error', 'Melebihi limit promo produk (Max: '.$cartItem->product->discount_limit.')');
+            }
         }
 
         $cartItem->update(['quantity' => $request->quantity]);

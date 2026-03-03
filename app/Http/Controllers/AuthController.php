@@ -24,7 +24,10 @@ class AuthController extends Controller
             $request->session()->regenerate();
 
             // Redirect based on role
-            return redirect()->intended('/products'); // Default to products for everyone
+            if (auth()->user()->role === 'admin' || auth()->user()->isAdmin()) {
+                return redirect()->intended(route('admin.dashboard', [], false) !== '/' ? route('admin.dashboard') : '/posts');
+            }
+            return redirect()->intended('/products');
         }
 
         throw ValidationException::withMessages([

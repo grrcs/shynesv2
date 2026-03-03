@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
+use App\Services\CheckoutService;
 use Illuminate\Http\Request;
+use Exception;
 
 class OrderController extends Controller
 {
@@ -13,14 +16,14 @@ class OrderController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $orders = \App\Models\Order::with('user')->latest()->paginate(10);
+        $orders = Order::with('user')->latest()->paginate(10);
         return view('orders.index', compact('orders'));
     }
 
     public function myOrders()
     {
         // Pembeli: Lihat order sendiri
-        $orders = \App\Models\Order::where('user_id', auth()->id())->latest()->paginate(10);
+        $orders = Order::where('user_id', auth()->id())->latest()->paginate(10);
         return view('orders.my_orders', compact('orders'));
     }
 
@@ -33,57 +36,21 @@ class OrderController extends Controller
         return view('checkout.payment', compact('cartItems'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, CheckoutService $checkoutService)
     {
-        // Validasi
         $cartItems = auth()->user()->cartItems()->with('product')->get();
-        if ($cartItems->isEmpty()) {
-            return back()->with('error', 'Keranjang belanja kosong!');
+        
+        try {
+            $checkoutService->processCheckout($cartItems, auth()->id());
+            return redirect()->route('orders.my')->with('success', 'Pesanan berhasil dibuat! Silakan tunggu konfirmasi admin.');
+        } catch (Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        // Hitung Total
-        $totalPrice = $cartItems->sum(function($item) {
-            return $item->product->price * $item->quantity;
-        });
-
-        // Cek Stok Lagi
-        foreach ($cartItems as $item) {
-             if ($item->product->stock < $item->quantity) {
-                 return back()->with('error', 'Stok produk ' . $item->product->title . ' tidak mencukupi!');
-             }
-        }
-
-        // Buat Order
-        $order = \App\Models\Order::create([
-            'user_id' => auth()->id(),
-            'total_price' => $totalPrice,
-            'status' => 'pending', // Bisa 'paid' jika asumsi QRIS langsung sukses
-            'invoice_number' => 'INV-' . time() . '-' . auth()->id(),
-        ]);
-
-        // Pindahkan item ke OrderItem
-        foreach ($cartItems as $item) {
-            \App\Models\OrderItem::create([
-                'order_id' => $order->id,
-                'product_id' => $item->product_id,
-                'product_name' => $item->product->title,
-                'price' => $item->product->price,
-                'quantity' => $item->quantity,
-            ]);
-
-            // Kurangi Stok
-            $item->product->decrement('stock', $item->quantity);
-        }
-
-        // Kosongkan Keranjang
-        auth()->user()->cartItems()->delete();
-
-        return redirect()->route('orders.my')->with('success', 'Pesanan berhasil dibuat! Silakan tunggu konfirmasi admin.');
     }
 
     public function show($id)
     {
-        $order = \App\Models\Order::with(['items', 'user'])->findOrFail($id);
+        $order = Order::with(['items', 'user'])->findOrFail($id);
 
         // Cek akses: Admin atau Pemilik Order
         if (auth()->user()->role !== 'admin' && auth()->id() !== $order->user_id) {
@@ -99,7 +66,7 @@ class OrderController extends Controller
             abort(403);
         }
 
-        $order = \App\Models\Order::findOrFail($id);
+        $order = Order::findOrFail($id);
         $order->update(['status' => $request->status]);
 
         return back()->with('success', 'Status pesanan diperbarui.');

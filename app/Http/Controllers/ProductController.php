@@ -4,14 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\Banner;
+use App\Services\ProductService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
+    protected ProductService $productService;
+
+    public function __construct(ProductService $productService)
+    {
+        $this->productService = $productService;
+    }
+
     /**
      * index - Menampilkan daftar produk untuk Admin
      */
@@ -27,8 +34,10 @@ class ProductController extends Controller
 
         $products = $query->paginate(10);
         $products->appends(['search' => $search]);
+        
+        $banners = Banner::where('is_active', true)->latest()->get();
 
-        return view('products.index', compact('products'));
+        return view('products.index', compact('products', 'banners'));
     }
 
     /**
@@ -54,32 +63,29 @@ class ProductController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $this->validate($request, [
-            'image'       => 'required|image|mimes:jpeg,png,jpg|max:2048',
-            'title'       => 'required|min:3',
-            'category_id' => 'required|exists:categories,id',
-            'price'       => 'required|numeric',
-            'stock'       => 'required|numeric',
-            'description' => 'required|min:10',
-            'status'      => 'required|in:active,inactive,sold_out'
+        $validatedData = $this->validate($request, [
+            'image'               => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'additional_images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'product_video'       => 'nullable|mimetypes:video/avi,video/mpeg,video/quicktime,video/mp4|max:20480', // 20MB max
+            'title'               => 'required|min:3',
+            'category_id'         => 'required|exists:categories,id',
+            'price'               => 'required|numeric',
+            'stock'               => 'required|numeric',
+            'description'         => 'required|min:10',
+            'status'              => 'required|in:active,inactive,sold_out',
+            'weight'              => 'nullable|numeric',
+            'link_shopee'         => 'nullable|url',
+            'is_discount_active'  => 'nullable|boolean',
+            'discount_price'      => 'nullable|numeric',
+            'discount_limit'      => 'nullable|numeric',
         ]);
 
-        // Upload Gambar
-        $image = $request->file('image');
-        $image->storeAs('products', $image->hashName(), 'public');
-
-        Product::create([
-            'image'       => $image->hashName(),
-            'title'       => $request->title,
-            'slug'        => Str::slug($request->title, '-'),
-            'category_id' => $request->category_id,
-            'description' => $request->description,
-            'price'       => $request->price,
-            'stock'       => $request->stock,
-            'weight'      => $request->weight ?? 100, // Default 100gr
-            'link_shopee' => $request->link_shopee,
-            'status'      => $request->status
-        ]);
+        $this->productService->createProduct(
+            $validatedData, 
+            $request->file('image'), 
+            $request->file('additional_images'), 
+            $request->file('product_video')
+        );
 
         return redirect()->route('products.index')->with(['success' => 'Produk Berhasil Ditambahkan!']);
     }
@@ -99,47 +105,32 @@ class ProductController extends Controller
      */
     public function update(Request $request, $id): RedirectResponse
     {
-        $this->validate($request, [
-            'title'       => 'required|min:3',
-            'category_id' => 'required|exists:categories,id',
-            'price'       => 'required|numeric',
-            'stock'       => 'required|numeric',
-            'description' => 'required|min:10',
-            'status'      => 'required|in:active,inactive,sold_out'
+        $validatedData = $this->validate($request, [
+            'image'               => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'additional_images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'product_video'       => 'nullable|mimetypes:video/avi,video/mpeg,video/quicktime,video/mp4|max:20480',
+            'title'               => 'required|min:3',
+            'category_id'         => 'required|exists:categories,id',
+            'price'               => 'required|numeric',
+            'stock'               => 'required|numeric',
+            'description'         => 'required|min:10',
+            'status'              => 'required|in:active,inactive,sold_out',
+            'weight'              => 'nullable|numeric',
+            'link_shopee'         => 'nullable|url',
+            'is_discount_active'  => 'nullable|boolean',
+            'discount_price'      => 'nullable|numeric',
+            'discount_limit'      => 'nullable|numeric',
         ]);
 
         $product = Product::findOrFail($id);
-
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $image->storeAs('products', $image->hashName(), 'public');
-            Storage::disk('public')->delete('products/'.$product->image);
-
-            $product->update([
-                'image'       => $image->hashName(),
-                'title'       => $request->title,
-                'slug'        => Str::slug($request->title, '-'),
-                'category_id' => $request->category_id,
-                'description' => $request->description,
-                'price'       => $request->price,
-                'stock'       => $request->stock,
-                'weight'      => $request->weight,
-                'link_shopee' => $request->link_shopee,
-                'status'      => $request->status
-            ]);
-        } else {
-            $product->update([
-                'title'       => $request->title,
-                'slug'        => Str::slug($request->title, '-'),
-                'category_id' => $request->category_id,
-                'description' => $request->description,
-                'price'       => $request->price,
-                'stock'       => $request->stock,
-                'weight'      => $request->weight,
-                'link_shopee' => $request->link_shopee,
-                'status'      => $request->status
-            ]);
-        }
+        
+        $this->productService->updateProduct(
+            $product, 
+            $validatedData, 
+            $request->file('image'),
+            $request->file('additional_images'),
+            $request->file('product_video')
+        );
 
         return redirect()->route('products.index')->with(['success' => 'Produk Berhasil Diupdate!']);
     }
@@ -150,8 +141,7 @@ class ProductController extends Controller
     public function destroy($id): RedirectResponse
     {
         $product = Product::findOrFail($id);
-        Storage::disk('public')->delete('products/'.$product->image);
-        $product->delete();
+        $this->productService->deleteProduct($product);
 
         return redirect()->route('products.index')->with(['success' => 'Produk Dihapus!']);
     }

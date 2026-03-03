@@ -1,181 +1,229 @@
 @extends('layouts.app')
 
-@section('title', $product->title . ' - Shyness OS')
+@section('title', $product->title . ' - Shyness')
 
 @section('content')
-<div class="max-w-4xl mx-auto">
-    <!-- Breadcrumb -->
-    <nav class="flex mb-4" aria-label="Breadcrumb">
-        <ol class="inline-flex items-center space-x-1 md:space-x-3">
-            <li class="inline-flex items-center">
-                <a href="{{ route('products.index') }}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
-                    <i class="fa fa-shopping-bag mr-2"></i>
-                    Produk
-                </a>
-            </li>
-            <li>
-                <div class="flex items-center">
-                    <i class="fa fa-chevron-right text-gray-400 text-xs mx-2"></i>
-                    <span class="text-sm font-medium text-gray-500">{{ $product->title }}</span>
-                </div>
-            </li>
-        </ol>
+<div class="max-w-6xl mx-auto">
+    <!-- Clean Breadcrumb -->
+    <nav class="flex mb-12 text-xs tracking-widest uppercase text-secondary font-light" aria-label="Breadcrumb">
+        <a href="{{ route('products.index') }}" class="hover:text-black dark:hover:text-white transition-colors">Koleksi</a>
+        <span class="mx-4">/</span>
+        <span class="text-primary dark:text-white transition-colors">{{ $product->title }}</span>
     </nav>
 
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-        <div class="grid grid-cols-1 md:grid-cols-2">
-            <!-- Product Image -->
-            <div class="p-6 md:p-8 bg-gray-50 flex items-center justify-center">
-                <div class="relative w-full aspect-square rounded-xl overflow-hidden shadow-md bg-white">
-                    <img src="{{ asset('storage/products/'.$product->image) }}" 
-                         alt="{{ $product->title }}" 
-                         class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 mb-20 product-card" data-product-id="{{ $product->id }}">
+        <!-- Product Image - Swiper Slider -->
+        <div class="lg:col-span-7">
+            <!-- Swiper CSS -->
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+            <!-- Swiper JS -->
+            <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+            <style>
+                .swiper-button-next, .swiper-button-prev { color: black; }
+                .dark .swiper-button-next, .dark .swiper-button-prev { color: white; }
+                .swiper-pagination-bullet-active { background: black !important; }
+                .dark .swiper-pagination-bullet-active { background: white !important; }
+                .swiper-pagination-bullet { background: gray; }
+            </style>
+
+            <div class="swiper product-swiper w-full bg-gray-50 dark:bg-[#151515] border border-thin dark:border-gray-800 aspect-[3/4] relative overflow-hidden transition-colors">
+                <div class="swiper-wrapper">
+                    <!-- Main Image Slide -->
+                    <div class="swiper-slide h-full w-full flex items-center justify-center">
+                        <img src="{{ asset('storage/products/'.$product->image) }}" 
+                             alt="{{ $product->title }}" 
+                             class="w-full h-full object-cover transition-transform duration-700 hover:scale-105 select-image">
+                    </div>
+                    
+                    <!-- Additional Media Slides -->
+                    @if($product->media && $product->media->count() > 0)
+                        @foreach($product->media as $media)
+                            <div class="swiper-slide h-full w-full flex items-center justify-center bg-gray-100 dark:bg-[#151515]">
+                                @if($media->file_type == 'image')
+                                    <img src="{{ asset('storage/products/'.$media->file_path) }}" class="w-full h-full object-cover transition-transform duration-700 hover:scale-105 select-image">
+                                @else
+                                    <video src="{{ asset('storage/products_video/'.$media->file_path) }}" class="w-full h-full object-cover" controls playsinline></video>
+                                @endif
+                            </div>
+                        @endforeach
+                    @endif
+                </div>
+
+                <!-- Navigation arrows -->
+                <div class="swiper-button-next drop-shadow-md"></div>
+                <div class="swiper-button-prev drop-shadow-md"></div>
+                
+                <!-- Pagination -->
+                <div class="swiper-pagination"></div>
+            </div>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const swiper = new Swiper('.product-swiper', {
+                        loop: true,
+                        pagination: {
+                            el: '.swiper-pagination',
+                            clickable: true,
+                        },
+                        navigation: {
+                            nextEl: '.swiper-button-next',
+                            prevEl: '.swiper-button-prev',
+                        },
+                    });
+
+                    // Pause video when swiping away
+                    swiper.on('slideChange', function() {
+                        document.querySelectorAll('.product-swiper video').forEach(function(video) {
+                            video.pause();
+                        });
+                    });
+                });
+            </script>
+        </div>
+
+        <!-- Product Info -->
+        <div class="lg:col-span-5 flex flex-col justify-start pt-8">
+            <div class="mb-10">
+                <p class="text-xs tracking-widest uppercase text-secondary mb-4">{{ $product->category->name ?? 'Essentials' }}</p>
+                <h1 class="text-4xl lg:text-5xl font-serif font-medium text-primary dark:text-white mb-6 leading-tight transition-colors">{{ $product->title }}</h1>
+                <div class="font-light tracking-wide transition-colors flex items-center flex-wrap gap-4">
+                    @if($product->is_discount_active && $product->discount_price)
+                        <span class="text-3xl text-red-600 dark:text-red-400 font-bold">Rp {{ number_format($product->discount_price, 0, ',', '.') }}</span>
+                        <span class="text-xl text-secondary line-through">Rp {{ number_format($product->price, 0, ',', '.') }}</span>
+                    @else
+                        <span class="text-2xl text-primary dark:text-white">Rp {{ number_format($product->price, 0, ',', '.') }}</span>
+                    @endif
                 </div>
             </div>
 
-            <!-- Product Info -->
-            <div class="p-6 md:p-8 flex flex-col justify-between">
-                <div>
-                    <!-- Category Badge -->
-                    <div class="mb-4">
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700">
-                            {{ $product->category->name ?? 'Uncategorized' }}
-                        </span>
-                    </div>
+            <div class="prose prose-sm prose-gray max-w-none text-secondary dark:text-gray-400 font-light leading-relaxed mb-12 transition-colors">
+                <div class="whitespace-pre-line">{!! $product->description !!}</div>
+            </div>
 
-                    <!-- Title -->
-                    <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ $product->title }}</h1>
-                    
-                    <!-- Price -->
-                    <div class="flex items-baseline mb-6">
-                        <span class="text-3xl font-mono font-bold text-gray-900">
-                            Rp {{ number_format($product->price, 0, ',', '.') }}
-                        </span>
-                        @if($product->stock < 5 && $product->stock > 0)
-                            <span class="ml-4 text-sm font-medium text-red-600">
-                                Sisa {{ $product->stock }} stok!
-                            </span>
-                        @endif
-                    </div>
-
-                    <!-- Description -->
-                    <div class="prose prose-sm text-gray-600 mb-8">
-                        <h3 class="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">Deskripsi</h3>
-                        <div class="whitespace-pre-line">{!! $product->description !!}</div>
-                    </div>
-                </div>
-
-                <!-- Actions -->
-                <div class="border-t border-gray-100 pt-6">
-                    <div class="flex flex-col gap-4">
-                        @if($product->status == 'active' && $product->stock > 0)
-                            @if(auth()->user()->isAdmin())
-                                <div class="flex gap-4">
-                                    <a href="{{ route('products.edit', $product->id) }}" class="flex-1 text-center px-6 py-3 bg-gray-100 text-gray-900 font-bold rounded-xl hover:bg-gray-200 transition-colors">
-                                        <i class="fa fa-pencil mr-2"></i> Edit Produk
-                                    </a>
-                                </div>
+            <!-- Actions -->
+            <div class="border-t border-thin dark:border-gray-800 pt-10 mt-auto transition-colors">
+                @if($product->status == 'active' && $product->stock > 0)
+                    @if(auth()->user() && auth()->user()->isAdmin())
+                        <div class="flex gap-4">
+                            <a href="{{ route('products.edit', $product->id) }}" class="w-full text-center px-8 py-4 text-xs tracking-widest uppercase font-medium text-white bg-primary dark:bg-white dark:text-primary hover:bg-black dark:hover:bg-gray-200 transition-colors">
+                                Edit Produk
+                            </a>
+                        </div>
+                    @else
+                        <div class="flex items-center justify-between text-xs tracking-widest uppercase text-secondary mb-6">
+                            <span>Availability</span>
+                            @if($product->stock < 5)
+                                <span class="text-red-500 dark:text-red-400">Only {{ $product->stock }} left</span>
                             @else
-                                <form action="{{ route('cart.store') }}" method="POST" class="w-full">
+                                <span class="text-primary dark:text-white transition-colors">In Stock</span>
+                            @endif
+                        </div>
+
+                        <div class="flex gap-4 mb-6">
+                            <div class="flex flex-1 gap-4">
+                                <div class="w-24 border border-thin dark:border-gray-700 relative transition-colors">
+                                    <label class="sr-only">Quantity</label>
+                                    <input type="number" id="qty-{{ $product->id }}" value="1" min="1" max="{{ $product->stock }}" 
+                                           class="w-full h-full p-4 text-center text-sm focus:outline-none focus:ring-0 bg-transparent text-primary dark:text-white transition-colors" oninput="document.getElementById('form-qty-{{ $product->id }}').value = this.value">
+                                </div>
+                                
+                                <form action="{{ route('cart.store') }}" method="POST" class="flex-1">
                                     @csrf
                                     <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                    <div class="flex gap-4">
-                                        <div class="w-24">
-                                            <input type="number" name="quantity" value="1" min="1" max="{{ $product->stock }}" 
-                                                class="w-full px-4 py-3 border border-gray-300 rounded-xl text-center focus:outline-none focus:ring-2 focus:ring-black">
-                                        </div>
-                                        <button type="submit" class="flex-1 px-6 py-3 bg-gray-900 text-white font-bold rounded-xl hover:bg-black transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                                            <i class="fa fa-cart-plus mr-2"></i> Tambah ke Keranjang
-                                        </button>
-                                    </div>
-                                </form>
-                                <form action="{{ route('wishlist.store') }}" method="POST" class="ml-3">
-                                    @csrf
-                                    <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                    <button type="submit" class="h-full px-4 bg-white text-gray-400 border border-gray-200 rounded-xl hover:text-pink-500 hover:border-pink-500 transition-colors shadow-sm hover:shadow-md" title="Simpan ke Wishlist">
-                                        <i class="fa fa-heart text-xl"></i>
+                                    <input type="hidden" name="quantity" value="1" id="form-qty-{{ $product->id }}">
+                                    <button type="submit" class="w-full h-full px-8 py-4 text-xs tracking-widest uppercase font-medium text-white bg-primary dark:bg-white dark:text-primary hover:bg-black dark:hover:bg-gray-200 transition-all border border-primary dark:border-white">
+                                        Beli Sekarang
                                     </button>
                                 </form>
-                            @endif
-                        @else
-                           <button disabled class="w-full px-6 py-3 bg-gray-200 text-gray-400 font-bold rounded-xl cursor-not-allowed">
-                                @if($product->stock <= 0)
-                                    Stok Habis
-                                @else
-                                    Produk Tidak Aktif
-                                @endif
-                           </button>
-                        @endif
-                        
-                        <!-- Shopee Link if available -->
-                        @if($product->link_shopee)
-                            <a href="{{ $product->link_shopee }}" target="_blank" class="w-full text-center px-6 py-3 border border-orange-500 text-orange-600 font-bold rounded-xl hover:bg-orange-50 transition-colors">
-                                <i class="fa fa-shopping-bag mr-2"></i> Beli di Shopee
-                            </a>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
+                            </div>
+                            
+                            <button type="button" onclick="addToCart({{ $product->id }}, document.getElementById('qty-{{ $product->id }}').value, this)" class="w-14 h-full min-h-[56px] flex-shrink-0 flex items-center justify-center border border-thin dark:border-gray-700 text-secondary dark:text-gray-400 hover:text-primary dark:hover:text-white hover:border-black dark:hover:border-white transition-colors bg-white dark:bg-primary" title="Tambah ke Keranjang">
+                                <i class="fa-solid fa-cart-plus text-lg"></i>
+                            </button>
+                            
+                            <button type="button" onclick="addToWishlist({{ $product->id }}, this)" class="w-14 h-full min-h-[56px] flex-shrink-0 flex items-center justify-center border border-thin dark:border-gray-700 text-secondary dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:border-red-200 dark:hover:border-red-900 transition-colors bg-white dark:bg-primary" title="Favoritkan">
+                                @php
+                                    $inWishlist = false;
+                                    if(auth()->check()) {
+                                        $inWishlist = \App\Models\Wishlist::where('user_id', auth()->id())->where('product_id', $product->id)->exists();
+                                    }
+                                @endphp
+                                <i class="{{ $inWishlist ? 'fa-solid fa-heart text-red-500' : 'fa-regular fa-heart' }} text-lg wishlist-icon"></i>
+                            </button>
+                        </div>
+                    @endif
+                @else
+                   <button disabled class="w-full px-8 py-4 text-xs tracking-widest uppercase font-medium text-secondary bg-gray-100 dark:bg-gray-800 border border-thin dark:border-gray-700 cursor-not-allowed mb-6 transition-colors">
+                        {{ $product->stock <= 0 ? 'Out of Stock' : 'Unavailable' }}
+                   </button>
+                @endif
+                
+                <!-- External Link -->
+                @if($product->link_shopee)
+                    <a href="{{ $product->link_shopee }}" target="_blank" class="w-full block text-center px-8 py-4 text-xs tracking-widest uppercase font-medium text-primary dark:text-white border border-thin dark:border-gray-700 hover:border-black dark:hover:border-white transition-colors">
+                        Available on Shopee
+                    </a>
+                @endif
             </div>
         </div>
     </div>
 
-    <!-- Reviews Section -->
-    <div class="mt-8 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden p-6 md:p-8">
-        <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
-            <i class="fa fa-star text-yellow-400 mr-2"></i> Ulasan Produk ({{ $product->reviews->count() }})
+    <!-- Editorial Reviews Section -->
+    <div class="mt-24 pt-16 border-t border-thin dark:border-gray-800 max-w-4xl mx-auto transition-colors">
+        <h3 class="text-2xl font-serif font-medium text-primary dark:text-white mb-12 text-center transition-colors">
+            Client Impressions
         </h3>
 
-        <!-- Review Form -->
-        <div class="mb-8 bg-gray-50 rounded-xl p-6 border border-gray-200">
-            <h4 class="font-bold text-gray-900 mb-2">Tulis Ulasan Anda</h4>
-            <form action="{{ route('reviews.store') }}" method="POST">
+        <!-- Reviews List -->
+        <div class="space-y-12 mb-16">
+            @forelse($product->reviews as $review)
+                <div class="pb-12 border-b border-gray-100 dark:border-gray-800 last:border-0 last:pb-0 transition-colors">
+                    <div class="flex items-center justify-between mb-6 text-xs tracking-widest uppercase">
+                        <span class="font-medium text-primary dark:text-white transition-colors">{{ $review->user->name }}</span>
+                        <span class="text-secondary">{{ $review->created_at->format('M d, Y') }}</span>
+                    </div>
+                    <div class="text-primary dark:text-white text-[10px] mb-4 space-x-1 transition-colors">
+                        @for($i=0; $i<$review->rating; $i++) <i class="fa-solid fa-star"></i> @endfor
+                    </div>
+                    <p class="text-secondary dark:text-gray-400 font-light leading-relaxed italic transition-colors">"{{ $review->comment }}"</p>
+                </div>
+            @empty
+                <div class="text-center py-12">
+                    <p class="text-sm text-secondary font-light italic">No impressions yet for this item.</p>
+                </div>
+            @endforelse
+        </div>
+
+        <!-- Distinctive Review Form -->
+        <div class="bg-gray-50 dark:bg-[#151515] border border-thin dark:border-gray-800 p-8 md:p-12 transition-colors">
+            <h4 class="text-xs tracking-widest uppercase font-medium text-primary dark:text-white mb-8 text-center transition-colors">Leave your impression</h4>
+            <form action="{{ route('reviews.store') }}" method="POST" class="max-w-xl mx-auto">
                 @csrf
                 <input type="hidden" name="product_id" value="{{ $product->id }}">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Rating</label>
-                    <div class="flex gap-4">
+                
+                <div class="mb-8">
+                    <label class="block text-xs text-secondary uppercase tracking-widest mb-4 text-center">Rate your experience</label>
+                    <div class="flex justify-center gap-6 flex-row-reverse">
                         @foreach([5, 4, 3, 2, 1] as $rating)
-                            <label class="flex items-center cursor-pointer">
-                                <input type="radio" name="rating" value="{{ $rating }}" class="mr-1" {{ $rating == 5 ? 'checked' : '' }}>
-                                <span class="text-yellow-500">
-                                    @for($i=0; $i<$rating; $i++) <i class="fa fa-star"></i> @endfor
-                                </span>
+                            <label class="group cursor-pointer">
+                                <input type="radio" name="rating" value="{{ $rating }}" class="peer sr-only" {{ $rating == 5 ? 'checked' : '' }}>
+                                <i class="fa-solid fa-star text-gray-300 dark:text-gray-600 peer-checked:text-primary dark:peer-checked:text-white group-hover:text-primary dark:group-hover:text-white transition-colors cursor-pointer text-lg"></i>
                             </label>
                         @endforeach
                     </div>
                 </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Komentar</label>
-                    <textarea name="comment" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-black focus:border-black" placeholder="Bagaimana pendapat Anda tentang produk ini?"></textarea>
+                
+                <div class="mb-8">
+                    <textarea name="comment" rows="4" class="w-full px-4 py-4 bg-transparent border-b border-thin dark:border-gray-700 focus:border-black dark:focus:border-white focus:outline-none transition-colors resize-none text-sm font-light text-primary dark:text-white placeholder:text-gray-400" placeholder="Share your thoughts..."></textarea>
                 </div>
-                <button type="submit" class="px-6 py-2 bg-gray-900 text-white font-bold rounded-lg hover:bg-black transition-colors">
-                    Kirim Ulasan
-                </button>
+                
+                <div class="text-center">
+                    <button type="submit" class="px-10 py-3 text-xs tracking-widest uppercase font-medium text-primary dark:text-white border border-primary dark:border-white hover:bg-primary hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors">
+                        Submit
+                    </button>
+                </div>
             </form>
-        </div>
-
-        <!-- Reviews List -->
-        <div class="space-y-6">
-            @forelse($product->reviews as $review)
-                <div class="border-b border-gray-100 last:border-0 pb-6 last:pb-0">
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <span class="font-bold text-gray-900">{{ $review->user->name }}</span>
-                            <span class="text-xs text-gray-500 ml-2">{{ $review->created_at->diffForHumans() }}</span>
-                        </div>
-                        <div class="text-yellow-400 text-sm">
-                            @for($i=0; $i<$review->rating; $i++) <i class="fa fa-star"></i> @endfor
-                        </div>
-                    </div>
-                    <p class="text-gray-600 text-sm">{{ $review->comment }}</p>
-                </div>
-            @empty
-                <div class="text-center text-gray-500 py-8">
-                    Belum ada ulasan untuk produk ini. Jadilah yang pertama!
-                </div>
-            @endforelse
         </div>
     </div>
 </div>

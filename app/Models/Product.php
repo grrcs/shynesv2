@@ -25,6 +25,9 @@ class Product extends Model
         'weight',
         'link_shopee',
         'status',
+        'discount_price',
+        'discount_limit',
+        'is_discount_active',
     ];
 
     /**
@@ -38,5 +41,10 @@ class Product extends Model
     public function reviews()
     {
         return $this->hasMany(Review::class);
+    }
+
+    public function media()
+    {
+        return $this->hasMany(ProductMedia::class);
     }
 }

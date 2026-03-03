@@ -3,34 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Shyness OS')</title>
+    <title>@yield('title', 'SHYNESS | Premium UI')</title>
     
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     
-    <!-- CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-        }
-    </script>
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Toastr CSS -->
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     
+    <!-- Vite CSS & JS -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f9fafb; }
-        .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f3f4f6; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
-        .fade-in { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
+        body { font-family: 'DM Sans', sans-serif; }
+        .font-serif { font-family: 'Playfair Display', serif; }
+        
+        /* Premium minimal scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e4e4e7; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a1a1aa; }
+        
+        .fade-in-up { animation: fadeInUp 0.4s ease-out forwards; opacity: 0; transform: translateY(10px); }
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+        
+        .border-thin { border: 1px solid #E5E5E5; }
+        
+        /* Force hide hamburger menu on tablet and desktop */
+        @media (min-width: 768px) {
+            #mobile-menu-btn { display: none !important; }
         }
     </style>
+    
     <script>
-        // Check local storage for theme
+        // Minimalist Theme Script checking
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         } else {
@@ -39,134 +50,357 @@
     </script>
     @stack('styles')
 </head>
-<body class="bg-gray-50 text-gray-900 antialiased dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
+<body class="bg-white text-primary antialiased min-h-screen flex flex-col selection:bg-black selection:text-white dark:bg-primary dark:text-gray-200 transition-colors duration-300">
 
-    <!-- Navbar -->
-    <nav class="bg-white border-b border-gray-200 px-4 py-3 shadow-sm sticky top-0 z-30">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <a href="{{ route('posts.index') }}" class="flex items-center gap-2 hover:opacity-80 transition group">
-                    <img src="{{ asset('storage/images/shyness.png') }}" class="h-9 w-auto object-contain"
-                         onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=S&background=000&color=fff';">
-                    <h1 class="font-bold text-xl text-gray-900 tracking-tight">SHYNESS</h1>
-                </a>
-            </div>
-
-            <!-- MENU NAVIGASI -->
-            <div class="flex items-center gap-6">
-                @if(auth()->user()->isAdmin())
-                    <a href="{{ route('posts.index') }}" class="text-sm font-medium {{ request()->routeIs('posts.*') ? 'text-gray-900 border-b-2 border-gray-900 font-bold' : 'text-gray-500 hover:text-gray-900 hover:border-b-2 hover:border-gray-300' }} pb-0.5 transition-all">
-                        Postingan
+    <!-- Minimalist Navbar -->
+    <nav class="w-full bg-white dark:bg-primary border-b border-thin sticky top-0 z-40 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Branding -->
+                <div class="flex items-center">
+                    <a href="{{ auth()->check() ? (auth()->user()->isAdmin() ? route('admin.dashboard') : route('products.index')) : route('welcome') }}" class="font-serif font-semibold text-2xl tracking-widest uppercase hover:opacity-70 transition-opacity">
+                        Shyness
                     </a>
-                @endif
-
-                <a href="{{ route('products.index') }}" class="text-sm font-medium {{ request()->routeIs('products.*') ? 'text-gray-900 border-b-2 border-gray-900 font-bold' : 'text-gray-500 hover:text-gray-900 hover:border-b-2 hover:border-gray-300' }} pb-0.5 transition-all">
-                    Produk
-                </a>
-
-                @if(auth()->user()->isAdmin())
-                    <a href="{{ route('categories.index') }}" class="text-sm font-medium {{ request()->routeIs('categories.*') ? 'text-gray-900 border-b-2 border-gray-900 font-bold' : 'text-gray-500 hover:text-gray-900 hover:border-b-2 hover:border-gray-300' }} pb-0.5 transition-all">
-                        Kategori
-                    </a>
-
-                    <a href="{{ route('videos.index') }}" class="text-sm font-medium {{ request()->routeIs('videos.*') ? 'text-gray-900 border-b-2 border-gray-900 font-bold' : 'text-gray-500 hover:text-gray-900 hover:border-b-2 hover:border-gray-300' }} pb-0.5 transition-all">
-                        Video
-                    </a>
-                @endif
-
-                @if(auth()->user()->isAdmin())
-                    <a href="{{ route('orders.index') }}" class="text-sm font-medium {{ request()->routeIs('orders.*') ? 'text-gray-900 border-b-2 border-gray-900 font-bold' : 'text-gray-500 hover:text-gray-900 hover:border-b-2 hover:border-gray-300' }} pb-0.5 transition-all">
-                        Kelola Pesanan
-                    </a>
-                @else
-                    <a href="{{ route('orders.my') }}" class="text-sm font-medium {{ request()->routeIs('orders.*') ? 'text-gray-900 border-b-2 border-gray-900 font-bold' : 'text-gray-500 hover:text-gray-900 hover:border-b-2 hover:border-gray-300' }} pb-0.5 transition-all">
-                        Pesanan Saya
-                    </a>
-                @endif
-                
-                <!-- Search Bar -->
-                <form action="{{ route('search.index') }}" method="GET" class="hidden md:flex items-center ml-auto mr-6">
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3">
-                             <i class="fa fa-search text-gray-400"></i>
-                        </span>
-                        <input type="text" name="q" class="w-64 py-2 pl-10 pr-4 text-sm bg-gray-100 border border-transparent rounded-full focus:outline-none focus:ring-2 focus:ring-gray-200 focus:bg-white transition-all placeholder-gray-400" placeholder="Cari produk, post, video..." value="{{ request('q') }}">
-                    </div>
-                </form>
-
-                <div class="flex items-center gap-3 pl-6 border-l border-gray-200">
-                    <!-- Dark Mode Toggle -->
-                    <button id="theme-toggle" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 focus:outline-none transition-colors mr-2">
-                        <i id="theme-icon" class="fas fa-moon"></i>
-                    </button>
-                    
-                    <div class="hidden md:block text-xs text-right">
-                        <div class="font-bold text-gray-700">{{ Auth::user()->name ?? 'User' }}</div>
-                        <div class="text-gray-400 capitalize">{{ Auth::user()->role ?? 'Guest' }}</div>
-                    </div>
-                    <div class="relative group">
-                        <img src="https://ui-avatars.com/api/?name={{ Auth::user()->name ?? 'User' }}&background=1f2937&color=fff" class="w-8 h-8 rounded-full border border-gray-300 cursor-pointer">
-                        <!-- Dropdown Logout -->
-                        <div class="hidden group-hover:block absolute right-0 top-8 w-48 bg-white dark:bg-gray-800 shadow-lg rounded-lg py-2 border border-gray-100 dark:border-gray-700 z-50">
-                            <a href="{{ route('wishlist.index') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
-                                <i class="fa fa-heart text-pink-500 mr-2"></i> Wishlist
-                            </a>
-                            <a href="{{ route('cart.index') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
-                                <i class="fa fa-shopping-cart text-blue-500 mr-2"></i> Keranjang
-                            </a>
-                            <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
-                            <form action="{{ route('logout') }}" method="POST">
-                                @csrf
-                                <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50">
-                                    <i class="fa fa-sign-out-alt mr-2"></i> Logout
-                                </button>
-                            </form>
-                        </div>
-                    </div>
                 </div>
+
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center space-x-8">
+                    @auth
+                        @if(auth()->user()->isAdmin())
+                            <a href="{{ route('admin.dashboard') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('admin.dashboard') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">Dashboard</a>
+                            <a href="{{ route('posts.index') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('posts.*') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">Postingan</a>
+                            <a href="{{ route('categories.index') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('categories.*') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">Kategori</a>
+                            <a href="{{ route('videos.index') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('videos.*') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">Video</a>
+                            <a href="{{ route('banners.index') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('banners.*') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">Banner</a>
+                        @endif
+                        
+                        <a href="{{ route('products.index') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('products.*') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">Produk</a>
+                        
+                        @if(auth()->user()->isAdmin())
+                            <a href="{{ route('orders.index') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('orders.*') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">Pesanan</a>
+                        @else
+                            <a href="{{ route('orders.my') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('orders.*') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">Pesanan Saya</a>
+                        @endif
+                    @else
+                        <a href="{{ route('products.index') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('products.*') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">Koleksi</a>
+                    @endauth
+                </div>
+
+                <!-- Right Side Actions & Mobile Menu Toggle -->
+                <div class="flex items-center space-x-6">
+                    <!-- Search Icon -->
+                    <a href="{{ route('search.index') }}" class="text-secondary hover:text-primary dark:hover:text-white transition-colors">
+                        <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                    </a>
+                    
+                    <!-- Theme Toggle -->
+                    <button id="theme-toggle" class="text-secondary hover:text-primary dark:hover:text-white transition-colors focus:outline-none">
+                        <i id="theme-icon" class="fa-solid fa-moon text-sm"></i>
+                    </button>
+
+                    @auth
+                        <!-- Navbar Cart -->
+                        @php
+                            $cartCount = \App\Models\CartItem::where('user_id', auth()->id())->sum('quantity');
+                        @endphp
+                        <a href="{{ route('cart.index') }}" class="relative text-secondary hover:text-primary dark:hover:text-white transition-colors flex items-center group">
+                            <i class="fa-solid fa-bag-shopping text-sm"></i>
+                            <span id="cart-badge" class="{{ $cartCount > 0 ? 'flex' : 'hidden' }} absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full items-center justify-center">
+                                {{ $cartCount }}
+                            </span>
+                        </a>
+
+                        <!-- Desktop & Mobile Profile Dropdown -->
+                        <div class="relative group">
+                            <button id="profile-menu-btn" class="flex items-center gap-2 cursor-pointer focus:outline-none">
+                                <img src="https://ui-avatars.com/api/?name={{ Auth::user()->name ?? 'U' }}&background=111111&color=fff&rounded=true" class="w-8 h-8 rounded-full border border-thin">
+                            </button>
+                            <!-- Dropdown -->
+                            <div id="profile-dropdown" class="absolute right-0 top-10 mt-2 w-48 bg-white dark:bg-primary border border-thin shadow-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                                <div class="p-4 border-b border-thin">
+                                    <p class="text-xs font-medium truncate">{{ Auth::user()->name }}</p>
+                                    <p class="text-[10px] text-secondary uppercase tracking-widest">{{ Auth::user()->role ?? 'User' }}</p>
+                                </div>
+                                <div class="py-1">
+                                    <a href="{{ route('wishlist.index') }}" class="block px-4 py-2 text-xs tracking-widest uppercase text-secondary hover:text-primary dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                        Wishlist
+                                    </a>
+                                    <a href="{{ route('cart.index') }}" class="block px-4 py-2 text-xs tracking-widest uppercase text-secondary hover:text-primary dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                        Keranjang
+                                    </a>
+                                </div>
+                                <div class="py-1 border-t border-thin">
+                                    <form action="{{ route('logout') }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="w-full text-left px-4 py-2 text-xs tracking-widest uppercase text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors">
+                                            Log Out
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <a href="{{ route('login') }}" class="hidden md:inline-block text-xs tracking-widest uppercase hover:underline underline-offset-4">Log In</a>
+                    @endauth
+
+                    <!-- Mobile Hamburger -->
+                    <button type="button" id="mobile-menu-btn" class="md:hidden text-secondary hover:text-primary dark:hover:text-white focus:outline-none p-2 -mr-2 relative z-50">
+                        <i class="fa-solid fa-bars text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white dark:bg-primary border-t border-thin absolute w-full left-0 top-20 px-4 py-4 shadow-lg transition-colors duration-300 z-40">
+            <div class="flex flex-col space-y-4">
+                @auth
+                    @if(auth()->user()->isAdmin())
+                        <a href="{{ route('admin.dashboard') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('admin.dashboard') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Dashboard</a>
+                        <a href="{{ route('posts.index') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('posts.*') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Postingan</a>
+                        <a href="{{ route('categories.index') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('categories.*') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Kategori</a>
+                        <a href="{{ route('videos.index') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('videos.*') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Video</a>
+                        <a href="{{ route('banners.index') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('banners.*') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Banner</a>
+                    @endif
+                    <a href="{{ route('products.index') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('products.*') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Produk</a>
+                    
+                    @if(auth()->user()->isAdmin())
+                        <a href="{{ route('orders.index') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('orders.*') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Pesanan</a>
+                    @else
+                        <a href="{{ route('orders.my') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('orders.*') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Pesanan Saya</a>
+                    @endif
+                @else
+                    <a href="{{ route('products.index') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('products.*') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Koleksi</a>
+                    <a href="{{ route('login') }}" class="block text-xs md:hidden tracking-widest uppercase text-secondary hover:text-primary dark:hover:text-white">Log In</a>
+                @endauth
             </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-8 py-10 fade-in-up md:mt-0">
         @yield('content')
-    </div>
+    </main>
 
-    <!-- Scripts -->
+    <!-- Essential Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script>
-        @if(session()->has('success')) toastr.success('{{ session('success') }}', 'BERHASIL!'); @endif
-        @if(session()->has('error')) toastr.error('{{ session('error') }}', 'GAGAL!'); @endif
+        toastr.options = { "positionClass": "toast-bottom-right", "progressBar": true, "showDuration": "300" };
+        @if(session()->has('success')) toastr.success('{{ session('success') }}'); @endif
+        @if(session()->has('error')) toastr.error('{{ session('error') }}'); @endif
+        @if($errors->any())
+            toastr.error('Terdapat kesalahan pada form, periksa kembali input Anda.');
+        @endif
 
-        // Theme Toggle Logic
+        // Elegant Theme Toggle
         const themeToggleBtn = document.getElementById('theme-toggle');
         const themeIcon = document.getElementById('theme-icon');
         
-        // Icon logic
-        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            themeIcon.classList.remove('fa-moon');
-            themeIcon.classList.add('fa-sun');
-        } else {
-            themeIcon.classList.remove('fa-sun');
-            themeIcon.classList.add('fa-moon');
-        }
+        const updateIconSettings = () => {
+            if (document.documentElement.classList.contains('dark')) {
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
+            }
+        };
+        
+        updateIconSettings();
 
         themeToggleBtn.addEventListener('click', function() {
-            // if set via local storage previously
-            if (localStorage.theme === 'dark') {
-                document.documentElement.classList.remove('dark');
-                localStorage.theme = 'light';
-                themeIcon.classList.remove('fa-sun');
-                themeIcon.classList.add('fa-moon');
-            } else {
-                document.documentElement.classList.add('dark');
-                localStorage.theme = 'dark';
-                themeIcon.classList.remove('fa-moon');
-                themeIcon.classList.add('fa-sun');
-            }
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            localStorage.theme = isDark ? 'dark' : 'light';
+            updateIconSettings();
         });
+
+        // Mobile Menu Toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        if (mobileMenuBtn && mobileMenu) {
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+
+        // Profile Menu Click Toggle (For Mobile Support)
+        const profileMenuBtn = document.getElementById('profile-menu-btn');
+        const profileDropdown = document.getElementById('profile-dropdown');
+        
+        if (profileMenuBtn) {
+            profileMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                profileDropdown.classList.toggle('opacity-0');
+                profileDropdown.classList.toggle('invisible');
+            });
+
+            // Close when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!profileMenuBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+                    profileDropdown.classList.add('opacity-0', 'invisible');
+                }
+            });
+        }
+
+        // Global Wishlist Functions
+        async function addToWishlist(productId, btn) {
+            const icon = btn.querySelector('.wishlist-icon');
+            const card = btn.closest('.product-card');
+            const image = card ? card.querySelector('.select-image') : null;
+            
+            const wasSolid = icon.classList.contains('fa-solid');
+            
+            // Set loading
+            icon.className = 'fa-solid fa-spinner fa-spin text-sm wishlist-icon';
+
+            try {
+                const response = await fetch('{{ route("wishlist.store") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ product_id: productId })
+                });
+                
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.action === 'added') {
+                        icon.className = 'fa-solid fa-heart text-red-500 text-sm wishlist-icon transition-all scale-110';
+                        setTimeout(() => icon.classList.remove('scale-110'), 200);
+                        if (typeof toastr !== 'undefined') toastr.success(data.message);
+                        if (image) flyToProfile(image);
+                    } else if (data.action === 'removed') {
+                        icon.className = 'fa-regular fa-heart text-sm wishlist-icon transition-all scale-110';
+                        setTimeout(() => icon.classList.remove('scale-110'), 200);
+                        if (typeof toastr !== 'undefined') toastr.info(data.message);
+                    }
+                } else {
+                    icon.className = (wasSolid ? 'fa-solid fa-heart text-red-500' : 'fa-regular fa-heart') + ' text-sm wishlist-icon';
+                    if (typeof toastr !== 'undefined') toastr.error(data.message || 'Terjadi kesalahan.');
+                }
+            } catch (e) {
+                icon.className = (wasSolid ? 'fa-solid fa-heart text-red-500' : 'fa-regular fa-heart') + ' text-sm wishlist-icon';
+                if (typeof toastr !== 'undefined') toastr.error('Terjadi kesalahan koneksi.');
+            }
+        }
+
+        async function addToCart(productId, quantity = 1, btn = null) {
+            let originalText = '';
+            if (btn) {
+                originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                btn.disabled = true;
+            }
+
+            try {
+                const response = await fetch('{{ route("cart.store") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ product_id: productId, quantity: quantity })
+                });
+
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    if (typeof toastr !== 'undefined') toastr.success(data.message);
+                    
+                    // Update cart badge
+                    const badge = document.getElementById('cart-badge');
+                    if (badge) {
+                        badge.textContent = data.cart_count;
+                        badge.classList.remove('hidden');
+                        badge.classList.add('flex');
+                        
+                        // Bounce animation
+                        badge.classList.add('animate-bounce');
+                        setTimeout(() => badge.classList.remove('animate-bounce'), 1000);
+                    }
+                    
+                    // Optional fly to bag
+                    const card = btn ? btn.closest('.product-card') : null;
+                    const image = card ? card.querySelector('.select-image') : null;
+                    if (image) flyToProfile(image, 'bag'); // Modify flyToProfile to accept target
+
+                } else {
+                    if (typeof toastr !== 'undefined') toastr.error(data.message || 'Terjadi kesalahan.');
+                }
+            } catch (e) {
+                if (typeof toastr !== 'undefined') toastr.error('Terjadi kesalahan koneksi.');
+            } finally {
+                if (btn) {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            }
+        }
+
+        function flyToProfile(imageElement, targetType = 'profile') {
+            let selector = 'nav img.rounded-full, nav .fa-user'; // Default profile target
+            if (targetType === 'bag') {
+                selector = 'nav .fa-bag-shopping';
+            }
+            const targetEl = document.querySelector(selector);
+            if (!targetEl || !imageElement) return;
+
+            const clone = imageElement.cloneNode(true);
+            const rect = imageElement.getBoundingClientRect();
+            const targetRect = targetEl.getBoundingClientRect();
+
+            Object.assign(clone.style, {
+                position: 'fixed',
+                top: rect.top + 'px',
+                left: rect.left + 'px',
+                width: rect.width + 'px',
+                height: rect.height + 'px',
+                objectFit: 'cover',
+                zIndex: 9999,
+                transition: 'all 0.8s cubic-bezier(0.25, 1, 0.5, 1)',
+                borderRadius: '8px',
+                boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+                pointerEvents: 'none'
+            });
+
+            document.body.appendChild(clone);
+
+            requestAnimationFrame(() => {
+                Object.assign(clone.style, {
+                    top: targetRect.top + 'px',
+                    left: targetRect.left + 'px',
+                    width: '20px',
+                    height: '20px',
+                    opacity: '0.2',
+                    borderRadius: '50%',
+                    transform: 'scale(0.5)'
+                });
+            });
+
+            setTimeout(() => {
+                clone.remove();
+                targetEl.style.transition = 'transform 0.2s ease-out';
+                targetEl.style.transform = 'scale(1.3)';
+                setTimeout(() => {
+                    targetEl.style.transform = 'scale(1)';
+                }, 200);
+            }, 800);
+        }
     </script>
     @stack('scripts')
 </body>
