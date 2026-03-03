@@ -31,10 +31,10 @@
                             <td class="p-6 text-primary dark:text-white">{{ $order->user->name }}</td>
                             <td class="p-6 text-primary dark:text-white">Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
                             <td class="p-6">
-                                <form action="{{ route('orders.updateStatus', $order->id) }}" method="POST" class="inline">
+                                <form action="{{ route('orders.updateStatus', $order->id) }}" method="POST" class="inline status-update-form">
                                     @csrf @method('PATCH')
                                     <div class="relative">
-                                        <select name="status" onchange="this.form.submit()" class="appearance-none bg-transparent border border-thin dark:border-gray-700 py-2 pl-4 pr-10 text-xs tracking-widest uppercase focus:outline-none focus:border-black dark:focus:border-white cursor-pointer w-full text-secondary dark:text-gray-300 dark:bg-primary transition-colors">
+                                        <select name="status" class="status-select appearance-none bg-transparent border border-thin dark:border-gray-700 py-2 pl-4 pr-10 text-xs tracking-widest uppercase focus:outline-none focus:border-black dark:focus:border-white cursor-pointer w-full text-secondary dark:text-gray-300 dark:bg-primary transition-colors">
                                             <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>Pending</option>
                                             <option value="paid" {{ $order->status == 'paid' ? 'selected' : '' }}>Paid</option>
                                             <option value="shipped" {{ $order->status == 'shipped' ? 'selected' : '' }}>Shipped</option>
@@ -73,3 +73,69 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.querySelectorAll('.status-select').forEach(select => {
+        select.addEventListener('change', function() {
+            const form = this.closest('.status-update-form');
+            const url = form.action;
+            const formData = new FormData(form);
+
+            const originalClasses = this.className;
+            this.classList.add('opacity-50', 'pointer-events-none');
+
+            // Find or create a toast notification element
+            let notification = document.getElementById('status-notification');
+            if (!notification) {
+                notification = document.createElement('div');
+                notification.id = 'status-notification';
+                notification.className = 'fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg text-sm font-medium tracking-widest uppercase text-white transition-opacity duration-300 opacity-0 z-50';
+                document.body.appendChild(notification);
+            }
+
+            fetch(url, {
+                method: 'POST', // Contains _method=PATCH in formData
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if(!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                this.classList.remove('opacity-50', 'pointer-events-none');
+                
+                if(data.success) {
+                    notification.textContent = 'Status berhasil diperbarui';
+                    notification.classList.remove('bg-red-500');
+                    notification.classList.add('bg-green-500', 'opacity-100');
+                } else {
+                    notification.textContent = data.error || 'Terjadi kesalahan saat memperbarui status';
+                    notification.classList.remove('bg-green-500');
+                    notification.classList.add('bg-red-500', 'opacity-100');
+                }
+                
+                setTimeout(() => {
+                    notification.classList.remove('opacity-100');
+                }, 3000);
+            })
+            .catch(error => {
+                this.classList.remove('opacity-50', 'pointer-events-none');
+                notification.textContent = 'Gagal menghubungi server';
+                notification.classList.remove('bg-green-500');
+                notification.classList.add('bg-red-500', 'opacity-100');
+                
+                setTimeout(() => {
+                    notification.classList.remove('opacity-100');
+                }, 3000);
+            });
+        });
+    });
+</script>
+@endpush

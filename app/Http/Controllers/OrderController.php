@@ -94,19 +94,24 @@ class OrderController extends Controller
     public function updateStatus(Request $request, $id)
     {
         if (auth()->user()->role !== 'admin') {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['error' => 'Unauthorized'], 403);
+            }
             abort(403);
         }
 
         $validated = $request->validate([
-            'status' => 'required|in:pending,confirmed,processing,shipped,delivered,cancelled',
+            'status' => 'required|in:pending,paid,confirmed,processing,shipped,delivered,completed,cancelled',
             'notes' => 'nullable|string|max:500',
         ]);
 
         $order = Order::with('user')->findOrFail($id);
         $oldStatus = $order->status;
         
+        $notes = $validated['notes'] ?? null;
+
         // Update status with history
-        $order->updateStatus($validated['status'], $validated['notes']);
+        $order->updateStatus($validated['status'], $notes);
 
         // Send notification to user
         $order->user->notify(
@@ -114,9 +119,13 @@ class OrderController extends Controller
                 $order, 
                 $oldStatus, 
                 $validated['status'], 
-                $validated['notes']
+                $notes
             )
         );
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Status pesanan diperbarui.']);
+        }
 
         return back()->with('success', 'Status pesanan diperbarui.');
     }
