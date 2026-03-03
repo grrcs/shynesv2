@@ -85,18 +85,18 @@
                 <div class="z-10 text-center max-w-4xl mx-auto px-4 sm:px-6 relative">
                     <!-- Tipografi Editorial -->
                     <h1 class="text-5xl sm:text-7xl font-serif font-semibold tracking-tight text-primary dark:text-white mb-6 leading-tight drop-shadow-sm reveal-up opacity-0 translate-y-12 transition-all duration-[1200ms] ease-out">
-                        Refined Elegance, <br/>
-                        <span class="text-secondary dark:text-gray-300 italic font-light">Crafted for Purists.</span>
+                        Silence Speaks <br/>
+                        <span class="text-secondary dark:text-gray-300 italic font-light">Volumes.</span>
                     </h1>
 
                     <p class="mt-8 max-w-lg mx-auto text-base sm:text-lg text-secondary dark:text-gray-400 font-light tracking-wide leading-relaxed drop-shadow-sm reveal-up opacity-0 translate-y-12 transition-all duration-[1200ms] delay-150 ease-out">
-                        Discover the curation of minimal essence. Manage and showcase your premium portfolio with absolute clarity.
+                        Beyond the noise, SHYNESS celebrates the art of understated elegance. Each piece is a testament to the power of purity and the beauty of quiet sophistication.
                     </p>
 
                     <div class="mt-12 flex justify-center reveal-up opacity-0 translate-y-12 transition-all duration-[1200ms] delay-300 ease-out">
-                        <a href="{{ route('login') }}"
+                        <a href="{{ route('products.index') }}"
                            class="inline-flex items-center justify-center px-10 py-4 text-sm tracking-widest uppercase font-medium text-white bg-primary dark:bg-white dark:text-primary hover:bg-black dark:hover:bg-gray-200 transition-colors duration-300 backdrop-blur-md">
-                            Akses Dashboard
+                            Shop Now
                         </a>
                     </div>
                 </div>
