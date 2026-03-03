@@ -1,0 +1,10 @@
+vendor/
+node_modules/
+.git/
+storage/framework/cache/data/
+storage/framework/sessions/
+storage/framework/views/
+storage/logs/
+public/storage
+.vercel/
+.gemini/
