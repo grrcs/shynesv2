@@ -1,4 +1,5 @@
 {
+    "_comment": "force redeploy 1",
     "version": 2,
     "outputDirectory": "public",
     "functions": {
