@@ -51,6 +51,7 @@ Route::middleware(['auth'])->group(function () {
     // Order Routes
     Route::get('/orders/my', [App\Http\Controllers\OrderController::class, 'myOrders'])->name('orders.my');
     Route::get('/orders/checkout', [App\Http\Controllers\OrderController::class, 'checkout'])->name('orders.checkout');
+    Route::post('/orders/apply-coupon', [App\Http\Controllers\OrderController::class, 'applyCoupon'])->name('orders.applyCoupon');
     Route::resource('/orders', App\Http\Controllers\OrderController::class);
     Route::patch('/orders/{id}/status', [App\Http\Controllers\OrderController::class, 'updateStatus'])->name('orders.updateStatus');
     Route::get('/orders/{id}/track', [App\Http\Controllers\OrderController::class, 'track'])->name('orders.track');
@@ -96,6 +97,20 @@ Route::middleware(['auth'])->group(function () {
         'update' => 'admin.coupons.update',
         'destroy' => 'admin.coupons.destroy',
     ]);
+
+    // Admin Product Variant Routes
+    Route::resource('/admin/products.variants', App\Http\Controllers\Admin\ProductVariantController::class)->names([
+        'index' => 'admin.products.variants.index',
+        'create' => 'admin.products.variants.create',
+        'store' => 'admin.products.variants.store',
+        'edit' => 'admin.products.variants.edit',
+        'update' => 'admin.products.variants.update',
+        'destroy' => 'admin.products.variants.destroy',
+    ]);
+
+    // Loyalty Points Routes
+    Route::get('/loyalty-points', [App\Http\Controllers\LoyaltyPointController::class, 'index'])->name('loyalty-points.index');
+    Route::post('/loyalty-points/redeem', [App\Http\Controllers\LoyaltyPointController::class, 'redeem'])->name('loyalty-points.redeem');
 
     // Buyer Payment Options Routes
     Route::get('/payment-options', [App\Http\Controllers\PaymentController::class, 'getPaymentOptions'])->name('payment.options.api');

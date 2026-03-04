@@ -131,10 +131,28 @@
             <h3 class="text-xs tracking-widest uppercase font-medium text-primary dark:text-gray-300 mb-6 pb-4 border-b border-thin dark:border-gray-800 transition-colors">Ringkasan Pesanan</h3>
             
             <div class="bg-white dark:bg-primary border border-thin dark:border-gray-800 rounded-xl p-6 sticky top-8">
+                <!-- Coupon Input -->
+                <div class="mb-6 pb-6 border-b border-thin dark:border-gray-800">
+                    <div class="flex gap-2">
+                        <input type="text" id="couponCode" name="coupon_code" placeholder="Masukkan kode kupon"
+                               class="flex-1 px-4 py-3 text-sm border border-gray-200 dark:border-gray-800 rounded-lg bg-gray-50 dark:bg-[#151515] text-primary dark:text-white placeholder-secondary focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-white">
+                        <button type="button" id="applyCouponBtn" 
+                                class="px-6 py-3 text-xs tracking-widest uppercase font-medium text-white bg-primary dark:bg-white dark:text-primary hover:bg-black dark:hover:bg-gray-200 transition-colors">
+                            Terapkan
+                        </button>
+                    </div>
+                    <div id="couponMessage" class="mt-2 text-xs hidden"></div>
+                    <input type="hidden" name="coupon_code" id="appliedCouponCode">
+                </div>
+
                 <div class="space-y-4 mb-6 text-sm">
                     <div class="flex justify-between">
                         <span class="text-secondary dark:text-gray-400">Subtotal</span>
                         <span class="font-medium text-primary dark:text-white">Rp <span id="subtotal">0</span></span>
+                    </div>
+                    <div id="couponDiscountRow" class="flex justify-between text-green-600 dark:text-green-400 hidden">
+                        <span>Diskon Kupon</span>
+                        <span>- Rp <span id="couponDiscount">0</span></span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-secondary dark:text-gray-400">Pajak & Biaya</span>
@@ -153,6 +171,7 @@
                     @csrf
                     <input type="hidden" name="payment_option_id" id="selectedPaymentOption">
                     <input type="hidden" name="address_id" id="selectedAddressOption">
+                    <input type="hidden" name="coupon_code" id="couponCodeHidden">
                     <button type="submit" id="confirmPayment" class="w-full py-4 text-xs tracking-widest uppercase font-medium text-white bg-primary dark:bg-white dark:text-primary hover:bg-black dark:hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                         <i class="fa fa-lock mr-2"></i> Konfirmasi Pembayaran
                     </button>
@@ -172,7 +191,8 @@
 <script>
     // Data subtotal asli dari backend
     const subtotalAmount = {{ $subtotalAmount ?? 0 }};
-    
+    let appliedCoupon = null;
+    let discountAmount = 0;
     
     function formatRupiah(amount) {
         return amount.toLocaleString('id-ID');
@@ -183,20 +203,29 @@
         if (!selectedOption) return;
         
         const taxPercentage = parseFloat(selectedOption.dataset.tax) || 0;
-        const taxAmount = subtotalAmount * (taxPercentage / 100);
-        const totalAmount = subtotalAmount + taxAmount;
+        const taxableAmount = subtotalAmount - discountAmount;
+        const taxAmount = Math.max(0, taxableAmount * (taxPercentage / 100));
+        const totalAmount = taxableAmount + taxAmount;
         
         // Update summary
         document.getElementById('subtotal').textContent = formatRupiah(subtotalAmount);
         document.getElementById('tax').textContent = formatRupiah(Math.round(taxAmount));
         document.getElementById('total').textContent = formatRupiah(Math.round(totalAmount));
         
+        // Update coupon discount display
+        if (discountAmount > 0) {
+            document.getElementById('couponDiscount').textContent = formatRupiah(discountAmount);
+            document.getElementById('couponDiscountRow').classList.remove('hidden');
+        } else {
+            document.getElementById('couponDiscountRow').classList.add('hidden');
+        }
+        
         // Update per-option amounts
         document.querySelectorAll('.payment-option-label').forEach(label => {
             const radio = label.querySelector('input[type="radio"]');
             const optionTax = parseFloat(radio.dataset.tax) || 0;
-            const optionTaxAmount = subtotalAmount * (optionTax / 100);
-            const optionTotal = subtotalAmount + optionTaxAmount;
+            const optionTaxAmount = Math.max(0, taxableAmount * (optionTax / 100));
+            const optionTotal = taxableAmount + optionTaxAmount;
             
             label.querySelector('.subtotal-amount').textContent = formatRupiah(subtotalAmount);
             
@@ -209,6 +238,78 @@
         // Enable confirm button
         document.getElementById('confirmPayment').disabled = false;
     }
+    
+    // Apply coupon functionality
+    document.getElementById('applyCouponBtn').addEventListener('click', function() {
+        const couponCode = document.getElementById('couponCode').value.trim();
+        const couponMessage = document.getElementById('couponMessage');
+        
+        if (!couponCode) {
+            couponMessage.textContent = 'Masukkan kode kupon terlebih dahulu';
+            couponMessage.className = 'mt-2 text-xs text-red-500';
+            couponMessage.classList.remove('hidden');
+            return;
+        }
+        
+        // Show loading state
+        this.disabled = true;
+        this.textContent = 'Memproses...';
+        
+        fetch('{{ route("orders.applyCoupon") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({
+                coupon_code: couponCode,
+                subtotal: subtotalAmount
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                couponMessage.textContent = data.error;
+                couponMessage.className = 'mt-2 text-xs text-red-500';
+                couponMessage.classList.remove('hidden');
+                
+                // Reset coupon
+                appliedCoupon = null;
+                discountAmount = 0;
+                document.getElementById('appliedCouponCode').value = '';
+                document.getElementById('couponCodeHidden').value = '';
+            } else if (data.success) {
+                couponMessage.textContent = `Kupon "${data.coupon.name}" berhasil diterapkan! Diskon: ${data.coupon.formatted_discount}`;
+                couponMessage.className = 'mt-2 text-xs text-green-500';
+                couponMessage.classList.remove('hidden');
+                
+                // Apply coupon
+                appliedCoupon = data.coupon;
+                discountAmount = data.coupon.discount_amount;
+                document.getElementById('appliedCouponCode').value = couponCode;
+                document.getElementById('couponCodeHidden').value = couponCode;
+                
+                // Disable coupon input
+                document.getElementById('couponCode').disabled = true;
+                this.textContent = 'Terpakai';
+                this.disabled = true;
+            }
+            
+            updateOrderSummary();
+        })
+        .catch(error => {
+            couponMessage.textContent = 'Terjadi kesalahan. Coba lagi.';
+            couponMessage.className = 'mt-2 text-xs text-red-500';
+            couponMessage.classList.remove('hidden');
+        })
+        .finally(() => {
+            // Reset button state
+            if (!appliedCoupon) {
+                this.disabled = false;
+                this.textContent = 'Terapkan';
+            }
+        });
+    });
     
     // Initialize
     updateOrderSummary();

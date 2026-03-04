@@ -47,4 +47,14 @@ class Product extends Model
     {
         return $this->hasMany(ProductMedia::class);
     }
+
+    public function variants()
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
+
+    public function getActiveVariantsAttribute()
+    {
+        return $this->variants()->where('is_active', true)->get();
+    }
 }

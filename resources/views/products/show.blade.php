@@ -25,26 +25,47 @@
                 .swiper-pagination-bullet-active { background: black !important; }
                 .dark .swiper-pagination-bullet-active { background: white !important; }
                 .swiper-pagination-bullet { background: gray; }
+                
+                /* Image zoom styles */
+                .zoom-container { position: relative; overflow: hidden; cursor: zoom-in; }
+                .zoom-container.zoom-active { cursor: zoom-out; }
+                .zoom-image { transition: transform 0.3s ease; }
+                .zoom-container.zoom-active .zoom-image { transform: scale(2); }
+                
+                /* Thumbnail styles */
+                .thumbnail-swiper { height: 100px; margin-top: 16px; }
+                .thumbnail-slide { opacity: 0.6; transition: opacity 0.3s; cursor: pointer; }
+                .thumbnail-slide-thumb-active { opacity: 1; }
+                .thumbnail-slide img { width: 100%; height: 100%; object-fit: cover; border: 2px solid transparent; transition: border-color 0.3s; }
+                .thumbnail-slide-thumb-active img { border-color: #000; }
+                .dark .thumbnail-slide-thumb-active img { border-color: #fff; }
             </style>
 
+            <!-- Main Swiper -->
             <div class="swiper product-swiper w-full bg-gray-50 dark:bg-[#151515] border border-thin dark:border-gray-800 aspect-[3/4] relative overflow-hidden transition-colors">
                 <div class="swiper-wrapper">
                     <!-- Main Image Slide -->
                     <div class="swiper-slide h-full w-full flex items-center justify-center">
-                        <img src="{{ asset('storage/products/'.$product->image) }}" onerror="this.onerror=null;this.src='{{ asset('images/campaign/shyness_vol_1.png') }}';" 
-                             alt="{{ $product->title }}" 
-                             class="w-full h-full object-cover transition-transform duration-700 hover:scale-105 select-image">
+                        <div class="zoom-container w-full h-full flex items-center justify-center">
+                            <img src="{{ asset('storage/products/'.$product->image) }}" onerror="this.onerror=null;this.src='{{ asset('images/campaign/shyness_vol_1.png') }}';" 
+                                 alt="{{ $product->title }}" 
+                                 class="zoom-image w-full h-full object-cover select-image">
+                        </div>
                     </div>
                     
                     <!-- Additional Media Slides -->
                     @if($product->media && $product->media->count() > 0)
                         @foreach($product->media as $media)
                             <div class="swiper-slide h-full w-full flex items-center justify-center bg-gray-100 dark:bg-[#151515]">
-                                @if($media->file_type == 'image')
-                                    <img src="{{ asset('storage/products/'.$media->file_path) }}" onerror="this.onerror=null;this.src='{{ asset('images/campaign/shyness_vol_1.png') }}';" class="w-full h-full object-cover transition-transform duration-700 hover:scale-105 select-image">
-                                @else
-                                    <video src="{{ asset('storage/products_video/'.$media->file_path) }}" class="w-full h-full object-cover" controls playsinline></video>
-                                @endif
+                                <div class="zoom-container w-full h-full flex items-center justify-center">
+                                    @if($media->file_type == 'image')
+                                        <img src="{{ asset('storage/products/'.$media->file_path) }}" onerror="this.onerror=null;this.src='{{ asset('images/campaign/shyness_vol_1.png') }}';" 
+                                             alt="{{ $product->title }}" 
+                                             class="zoom-image w-full h-full object-cover select-image">
+                                    @else
+                                        <video src="{{ asset('storage/products_video/'.$media->file_path) }}" class="w-full h-full object-cover" controls playsinline></video>
+                                    @endif
+                                </div>
                             </div>
                         @endforeach
                     @endif
@@ -58,9 +79,49 @@
                 <div class="swiper-pagination"></div>
             </div>
 
+            <!-- Thumbnail Swiper -->
+            <div thumbsSlider="" class="swiper thumbnail-swiper">
+                <div class="swiper-wrapper">
+                    <!-- Main Image Thumbnail -->
+                    <div class="swiper-slide thumbnail-slide h-full w-full flex items-center justify-center bg-gray-100 dark:bg-[#151515]">
+                        <img src="{{ asset('storage/products/'.$product->image) }}" onerror="this.onerror=null;this.src='{{ asset('images/campaign/shyness_vol_1.png') }}';" 
+                             alt="{{ $product->title }}" 
+                             class="w-full h-full object-cover">
+                    </div>
+                    
+                    <!-- Additional Media Thumbnails -->
+                    @if($product->media && $product->media->count() > 0)
+                        @foreach($product->media as $media)
+                            <div class="swiper-slide thumbnail-slide h-full w-full flex items-center justify-center bg-gray-100 dark:bg-[#151515]">
+                                @if($media->file_type == 'image')
+                                    <img src="{{ asset('storage/products/'.$media->file_path) }}" onerror="this.onerror=null;this.src='{{ asset('images/campaign/shyness_vol_1.png') }}';" 
+                                         alt="{{ $product->title }}" 
+                                         class="w-full h-full object-cover">
+                                @else
+                                    <video src="{{ asset('storage/products_video/'.$media->file_path) }}" class="w-full h-full object-cover"></video>
+                                @endif
+                            </div>
+                        @endforeach
+                    @endif
+                </div>
+            </div>
+
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
-                    const swiper = new Swiper('.product-swiper', {
+                    // Initialize thumbnail swiper
+                    const thumbnailSwiper = new Swiper('.thumbnail-swiper', {
+                        spaceBetween: 10,
+                        slidesPerView: 4,
+                        freeMode: true,
+                        watchSlidesProgress: true,
+                        breakpoints: {
+                            640: { slidesPerView: 5 },
+                            1024: { slidesPerView: 6 },
+                        },
+                    });
+
+                    // Initialize main swiper
+                    const mainSwiper = new Swiper('.product-swiper', {
                         loop: true,
                         pagination: {
                             el: '.swiper-pagination',
@@ -70,12 +131,49 @@
                             nextEl: '.swiper-button-next',
                             prevEl: '.swiper-button-prev',
                         },
+                        thumbs: {
+                            swiper: thumbnailSwiper,
+                        },
                     });
 
                     // Pause video when swiping away
-                    swiper.on('slideChange', function() {
+                    mainSwiper.on('slideChange', function() {
                         document.querySelectorAll('.product-swiper video').forEach(function(video) {
                             video.pause();
+                        });
+                    });
+
+                    // Image zoom functionality
+                    document.querySelectorAll('.zoom-container').forEach(container => {
+                        const img = container.querySelector('.zoom-image');
+                        if (!img) return;
+
+                        container.addEventListener('click', function(e) {
+                            this.classList.toggle('zoom-active');
+                            
+                            if (this.classList.contains('zoom-active')) {
+                                const rect = this.getBoundingClientRect();
+                                const x = e.clientX - rect.left;
+                                const y = e.clientY - rect.top;
+                                const xPercent = (x / rect.width) * 100;
+                                const yPercent = (y / rect.height) * 100;
+                                
+                                img.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+                            } else {
+                                img.style.transformOrigin = 'center center';
+                            }
+                        });
+
+                        container.addEventListener('mousemove', function(e) {
+                            if (this.classList.contains('zoom-active')) {
+                                const rect = this.getBoundingClientRect();
+                                const x = e.clientX - rect.left;
+                                const y = e.clientY - rect.top;
+                                const xPercent = (x / rect.width) * 100;
+                                const yPercent = (y / rect.height) * 100;
+                                
+                                img.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+                            }
                         });
                     });
                 });

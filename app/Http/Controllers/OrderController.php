@@ -52,10 +52,17 @@ class OrderController extends Controller
         $validated = $request->validate([
             'payment_option_id' => 'required|exists:payment_options,id',
             'address_id' => 'required|exists:addresses,id',
+            'coupon_code' => 'nullable|string|exists:coupons,code',
         ]);
         
         try {
-            $order = $checkoutService->processCheckout($cartItems, auth()->id(), $validated['payment_option_id'], $validated['address_id']);
+            $order = $checkoutService->processCheckout(
+                $cartItems, 
+                auth()->id(), 
+                $validated['payment_option_id'], 
+                $validated['address_id'],
+                $validated['coupon_code'] ?? null
+            );
             
             // Send notification to user
             $order->user->notify(new \App\Notifications\OrderCreatedNotification($order));
@@ -212,6 +219,44 @@ class OrderController extends Controller
             'courier' => $shippingDetail->courier_name,
             'tracking_number' => $trackingNumber,
             'status' => $status,
+        ]);
+    }
+
+    public function applyCoupon(Request $request)
+    {
+        $request->validate([
+            'coupon_code' => 'required|string|exists:coupons,code',
+            'subtotal' => 'required|numeric|min:0',
+        ]);
+
+        $coupon = \App\Models\Coupon::where('code', $request->coupon_code)->first();
+        
+        if (!$coupon->isValid()) {
+            return response()->json(['error' => 'Kupon tidak valid atau telah kedaluwarsa'], 422);
+        }
+
+        if (!$coupon->isValidForUser(auth()->id())) {
+            return response()->json(['error' => 'Anda telah mencapai batas penggunaan kupon ini'], 422);
+        }
+
+        if (!$coupon->isValidForOrder($request->subtotal)) {
+            return response()->json([
+                'error' => 'Minimum order Rp ' . number_format($coupon->minimum_order_amount, 0, ',', '.') . ' diperlukan untuk kupon ini'
+            ], 422);
+        }
+
+        $discountAmount = $coupon->calculateDiscount($request->subtotal);
+
+        return response()->json([
+            'success' => true,
+            'coupon' => [
+                'code' => $coupon->code,
+                'name' => $coupon->name,
+                'discount_type' => $coupon->discount_type,
+                'discount_value' => $coupon->discount_value,
+                'discount_amount' => $discountAmount,
+                'formatted_discount' => 'Rp ' . number_format($discountAmount, 0, ',', '.'),
+            ],
         ]);
     }
 }

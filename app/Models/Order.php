@@ -9,8 +9,10 @@ class Order extends Model
     protected $fillable = [
         'user_id', 
         'payment_option_id',
+        'coupon_id',
         'total_price', 
         'tax_amount',
+        'discount_amount',
         'status', 
         'invoice_number',
         'shipping_recipient_name',
@@ -34,6 +36,11 @@ class Order extends Model
     public function paymentOption()
     {
         return $this->belongsTo(PaymentOption::class);
+    }
+
+    public function coupon()
+    {
+        return $this->belongsTo(Coupon::class);
     }
 
     public function statusHistory()

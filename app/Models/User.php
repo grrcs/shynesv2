@@ -60,6 +60,50 @@ class User extends Authenticatable
         return $this->hasMany(Wishlist::class);
     }
 
+    public function loyaltyPoints()
+    {
+        return $this->hasMany(LoyaltyPoint::class);
+    }
+
+    public function getTotalPointsAttribute()
+    {
+        return $this->loyaltyPoints()->active()->sum('points');
+    }
+
+    public function getPointsValueAttribute()
+    {
+        return LoyaltyPoint::getPointsValue($this->total_points);
+    }
+
+    public function addPoints($points, $orderId = null, $description = null)
+    {
+        return $this->loyaltyPoints()->create([
+            'order_id' => $orderId,
+            'points' => $points,
+            'type' => 'earned',
+            'description' => $description,
+            'expires_at' => now()->addYear(), // Points expire in 1 year
+        ]);
+    }
+
+    public function redeemPoints($points, $description = null)
+    {
+        if ($this->total_points < $points) {
+            throw new \Exception('Poin tidak cukup!');
+        }
+
+        return $this->loyaltyPoints()->create([
+            'points' => -$points,
+            'type' => 'redeemed',
+            'description' => $description ?? 'Penukaran poin',
+        ]);
+    }
+
+    public function hasEnoughPoints($points)
+    {
+        return $this->total_points >= $points;
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *

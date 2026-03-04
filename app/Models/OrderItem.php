@@ -6,7 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class OrderItem extends Model
 {
-    protected $fillable = ['order_id', 'product_id', 'product_name', 'price', 'quantity'];
+    protected $fillable = [
+        'order_id', 
+        'product_id', 
+        'product_variant_id',
+        'product_name', 
+        'price', 
+        'quantity'
+    ];
 
     public function order()
     {
@@ -16,5 +23,26 @@ class OrderItem extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function variant()
+    {
+        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
+    }
+
+    public function getDisplayNameAttribute()
+    {
+        $name = $this->product_name;
+        
+        if ($this->variant) {
+            $name .= ' (' . $this->variant->display_name . ')';
+        }
+        
+        return $name;
+    }
+
+    public function getTotalPriceAttribute()
+    {
+        return $this->price * $this->quantity;
     }
 }
