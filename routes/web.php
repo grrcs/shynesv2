@@ -22,12 +22,18 @@ Route::get('/run-migrate', function () {
     try {
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
         $migrate = \Illuminate\Support\Facades\Artisan::output();
+    } catch (\Exception $e) {
+        $migrate = $e->getMessage();
+    }
+    
+    try {
         \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
         $seed = \Illuminate\Support\Facades\Artisan::output();
-        return response()->json(['migrate' => $migrate, 'seed' => $seed]);
     } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()]);
+        $seed = $e->getMessage();
     }
+    
+    return response()->json(['migrate' => $migrate, 'seed' => $seed]);
 });
 
 // Authentication Routes
