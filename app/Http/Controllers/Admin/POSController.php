@@ -354,7 +354,7 @@ class POSController extends Controller
         if ($order->payment_token) {
             try {
                 $cashIdService = app(\App\Services\CashIdService::class);
-                $statusResult = $cashIdService->checkPaymentStatus($order);
+                $statusResult = $cashIdService->checkPaymentStatus($order->invoice_number);
                 
                 if ($statusResult['success'] && $statusResult['status'] === 'paid') {
                     // Update order status if paid
