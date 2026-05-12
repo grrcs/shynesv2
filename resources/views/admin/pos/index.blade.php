@@ -446,6 +446,44 @@
         </div>
     </div>
 </div>
+
+<!-- Payment Waiting Modal -->
+<div id="payment-waiting-modal" class="checkout-overlay" style="display: none;">
+    <div class="checkout-box" style="max-width: 500px;">
+        <h3 class="checkout-title">MENUNGGU PEMBAYARAN</h3>
+        
+        <!-- QRIS Section -->
+        <div id="qris-section" style="display: none; text-align: center;">
+            <p style="margin-bottom: 16px; font-size: 13px;">Scan QR Code untuk membayar</p>
+            <img id="qris-image" src="" style="max-width: 300px; margin: 0 auto; display: block;">
+        </div>
+        
+        <!-- VA Section -->
+        <div id="va-section" style="display: none;">
+            <p style="font-size: 13px; margin-bottom: 12px;">Transfer ke:</p>
+            <div style="border: 1px solid var(--pos-border); padding: 16px; margin: 16px 0;">
+                <p style="margin-bottom: 8px;"><strong>Bank:</strong> <span id="va-bank">BCA</span></p>
+                <p style="margin-bottom: 8px;"><strong>No. Rekening:</strong> <span id="va-number">-</span></p>
+                <p><strong>Jumlah:</strong> <span id="va-amount">Rp 0</span></p>
+            </div>
+        </div>
+        
+        <!-- Countdown Timer -->
+        <div style="text-align: center; margin: 24px 0;">
+            <p style="font-size: 12px; color: var(--pos-text-muted);">Waktu tersisa:</p>
+            <p id="countdown-timer" style="font-size: 24px; font-weight: 700;">15:00</p>
+        </div>
+        
+        <!-- Status Message -->
+        <p id="payment-status-message" style="text-align: center; margin: 16px 0; font-size: 13px;"></p>
+        
+        <!-- Actions -->
+        <div style="display: flex; gap: 16px; margin-top: 24px;">
+            <button onclick="checkPaymentManually()" class="btn-batal" style="flex: 1;">CEK STATUS</button>
+            <button onclick="closePaymentWaiting()" class="btn-batal" style="flex: 1;">BATAL</button>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -564,10 +602,106 @@
         alert('Cash confirmation modal - To be implemented');
     }
 
+    // Payment Waiting Modal Implementation
+    let paymentPollingInterval = null;
+    let countdownInterval = null;
+    let currentOrderData = null;
+
     function showPaymentWaitingModal(data) {
-        console.log('Payment waiting modal:', data);
-        // TODO: Implement in Task 2
-        alert('Payment waiting modal - To be implemented');
+        currentOrderData = data;
+        const modal = document.getElementById('payment-waiting-modal');
+        
+        // Show appropriate section
+        if (data.payment_type === 'QRIS') {
+            document.getElementById('qris-section').style.display = 'block';
+            document.getElementById('va-section').style.display = 'none';
+            document.getElementById('qris-image').src = data.payment_url;
+        } else if (data.payment_type === 'VA') {
+            document.getElementById('qris-section').style.display = 'none';
+            document.getElementById('va-section').style.display = 'block';
+            document.getElementById('va-bank').innerText = 'BCA';
+            document.getElementById('va-number').innerText = data.payment_token || 'N/A';
+            document.getElementById('va-amount').innerText = 'Rp ' + f(data.total);
+        }
+        
+        modal.style.display = 'flex';
+        
+        // Start countdown (15 minutes = 900 seconds)
+        startCountdown(900);
+        
+        // Start polling
+        startPaymentPolling(data.order_id);
+    }
+
+    function startCountdown(seconds) {
+        let remaining = seconds;
+        const timerEl = document.getElementById('countdown-timer');
+        
+        countdownInterval = setInterval(() => {
+            remaining--;
+            const mins = Math.floor(remaining / 60);
+            const secs = remaining % 60;
+            timerEl.innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
+            
+            if (remaining <= 0) {
+                clearInterval(countdownInterval);
+                document.getElementById('payment-status-message').innerText = 'Pembayaran expired';
+                stopPaymentPolling();
+            }
+        }, 1000);
+    }
+
+    function startPaymentPolling(orderId) {
+        // Poll every 3 seconds
+        paymentPollingInterval = setInterval(async () => {
+            try {
+                const response = await fetch(`/admin/pos/check-payment/${orderId}`);
+                const data = await response.json();
+                
+                if (data.success && data.status === 'paid') {
+                    stopPaymentPolling();
+                    closePaymentWaiting();
+                    showReceiptModal(currentOrderData);
+                }
+            } catch (e) {
+                console.error('Polling error:', e);
+            }
+        }, 3000);
+    }
+
+    function stopPaymentPolling() {
+        if (paymentPollingInterval) {
+            clearInterval(paymentPollingInterval);
+            paymentPollingInterval = null;
+        }
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+        }
+    }
+
+    function closePaymentWaiting() {
+        stopPaymentPolling();
+        document.getElementById('payment-waiting-modal').style.display = 'none';
+    }
+
+    async function checkPaymentManually() {
+        if (!currentOrderData) return;
+        
+        try {
+            const response = await fetch(`/admin/pos/check-payment/${currentOrderData.order_id}`);
+            const data = await response.json();
+            
+            if (data.success && data.status === 'paid') {
+                stopPaymentPolling();
+                closePaymentWaiting();
+                showReceiptModal(currentOrderData);
+            } else {
+                document.getElementById('payment-status-message').innerText = 'Pembayaran belum diterima';
+            }
+        } catch (e) {
+            toastr.error('Gagal mengecek status pembayaran');
+        }
     }
 
     function showReceiptModal(data) {
