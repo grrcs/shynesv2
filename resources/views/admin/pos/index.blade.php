@@ -484,6 +484,23 @@
         </div>
     </div>
 </div>
+
+<!-- Cash Confirmation Modal -->
+<div id="cash-confirm-modal" class="checkout-overlay" style="display: none;">
+    <div class="checkout-box" style="max-width: 400px;">
+        <h3 class="checkout-title">KONFIRMASI PEMBAYARAN TUNAI</h3>
+        
+        <div style="text-align: center; margin: 32px 0;">
+            <p style="font-size: 14px; color: var(--pos-text-muted); margin-bottom: 16px;">Total Pembayaran</p>
+            <p id="cash-total-amount" style="font-size: 36px; font-weight: 700;">Rp 0</p>
+        </div>
+        
+        <div style="display: flex; gap: 16px; margin-top: 32px;">
+            <button onclick="cancelCashConfirm()" class="btn-batal" style="flex: 1;">BATAL</button>
+            <button onclick="confirmCashReceived()" class="btn-bayar" style="flex: 1;">UANG DITERIMA</button>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -595,11 +612,23 @@
         });
     });
 
-    // Placeholder functions for payment flow (to be implemented in next tasks)
+    // Cash Confirmation Modal Implementation
     function showCashConfirmModal(data) {
-        console.log('Cash confirm modal:', data);
-        // TODO: Implement in Task 3
-        alert('Cash confirmation modal - To be implemented');
+        currentOrderData = data;
+        document.getElementById('cash-total-amount').innerText = 'Rp ' + f(data.total);
+        document.getElementById('cash-confirm-modal').style.display = 'flex';
+    }
+
+    function cancelCashConfirm() {
+        document.getElementById('cash-confirm-modal').style.display = 'none';
+        currentOrderData = null;
+    }
+
+    function confirmCashReceived() {
+        document.getElementById('cash-confirm-modal').style.display = 'none';
+        if (currentOrderData) {
+            showReceiptModal(currentOrderData);
+        }
     }
 
     // Payment Waiting Modal Implementation
