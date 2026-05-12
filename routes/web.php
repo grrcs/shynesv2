@@ -1,12 +1,12 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PostController; // <--- Pastikan di-import
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\VideoController;
-
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PaymentController;
 
 Route::get('/', function () {
     $products = \App\Models\Product::with('category')
@@ -58,6 +58,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/orders/my', [App\Http\Controllers\OrderController::class, 'myOrders'])->name('orders.my');
     Route::get('/orders/checkout', [App\Http\Controllers\OrderController::class, 'checkout'])->name('orders.checkout');
     Route::post('/orders/apply-coupon', [App\Http\Controllers\OrderController::class, 'applyCoupon'])->name('orders.applyCoupon');
+    Route::get('/orders/direct-buy', [App\Http\Controllers\OrderController::class, 'directBuyPage'])->name('orders.directBuyPage');
+    Route::post('/orders/direct-buy', [App\Http\Controllers\OrderController::class, 'storeDirectBuy'])->name('orders.directBuy');
     Route::resource('/orders', App\Http\Controllers\OrderController::class);
     Route::patch('/orders/{id}/status', [App\Http\Controllers\OrderController::class, 'updateStatus'])->name('orders.updateStatus');
     Route::get('/orders/{id}/track', [App\Http\Controllers\OrderController::class, 'track'])->name('orders.track');
@@ -78,6 +80,17 @@ Route::middleware(['auth'])->group(function () {
 
     // Admin Dashboard
     Route::get('/admin/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('admin.dashboard');
+
+    // POS System
+    Route::get('/admin/pos', [App\Http\Controllers\Admin\POSController::class, 'index'])->name('admin.pos');
+    Route::get('/admin/pos/search-products', [App\Http\Controllers\Admin\POSController::class, 'searchProducts'])->name('admin.pos.searchProducts');
+    Route::get('/admin/pos/search-users', [App\Http\Controllers\Admin\POSController::class, 'searchUsers'])->name('admin.pos.searchUsers');
+    Route::post('/admin/pos/checkout', [App\Http\Controllers\Admin\POSController::class, 'checkout'])->name('admin.pos.checkout');
+    Route::get('/admin/pos/check-payment/{orderId}', [App\Http\Controllers\Admin\POSController::class, 'checkPaymentStatus'])->name('admin.pos.checkPayment');
+    Route::get('/admin/pos/variants/{productId}', [App\Http\Controllers\Admin\POSController::class, 'getProductVariants'])->name('admin.pos.variants');
+    Route::get('/admin/pos/transactions', [App\Http\Controllers\Admin\POSController::class, 'getRecentTransactions'])->name('admin.pos.transactions');
+    Route::get('/admin/pos/transactions/{id}', [App\Http\Controllers\Admin\POSController::class, 'getTransactionDetail'])->name('admin.pos.transactionDetail');
+    Route::get('/admin/pos/sales-report', [App\Http\Controllers\Admin\POSController::class, 'getSalesReport'])->name('admin.pos.salesReport');
 
     // User Addresses Profile
     Route::resource('/profile/addresses', App\Http\Controllers\AddressController::class);
@@ -125,3 +138,10 @@ Route::middleware(['auth'])->group(function () {
     // Confessions
     Route::resource('/confessions', App\Http\Controllers\ConfessionController::class)->only(['index', 'store']);
 });
+
+// Cash.id Payment Routes (outside auth middleware for webhook and callbacks)
+Route::post('/payment/cashid/create/{order}', [PaymentController::class, 'createCashIdPayment'])->name('payment.cashid.create')->middleware('auth');
+Route::get('/payment/cashid/status/{order}', [PaymentController::class, 'checkStatus'])->name('payment.cashid.status')->middleware('auth');
+Route::get('/payment/cashid/success', [PaymentController::class, 'cashIdSuccess'])->name('payment.cashid.success');
+Route::get('/payment/cashid/cancel', [PaymentController::class, 'cashIdCancel'])->name('payment.cashid.cancel');
+Route::post('/payment/cashid/webhook', [PaymentController::class, 'cashIdWebhook'])->name('payment.cashid.webhook');
