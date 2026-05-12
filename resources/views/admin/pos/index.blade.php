@@ -532,8 +532,19 @@
                 })
             });
             let d = await r.json();
-            if (d.success) { toastr.success('Berhasil'); location.reload(); }
-            else { toastr.error(d.message); b.disabled = false; b.innerText = 'BAYAR'; }
+            if (d.success) {
+                toastr.success('Berhasil');
+                hideCheckout(); // Close checkout modal first
+                
+                // Route based on payment type
+                if (d.payment_type === 'cash' || d.payment_type === 'cod') {
+                    showCashConfirmModal(d);
+                } else if (d.payment_url) {
+                    showPaymentWaitingModal(d);
+                } else {
+                    showReceiptModal(d);
+                }
+            } else { toastr.error(d.message); b.disabled = false; b.innerText = 'BAYAR'; }
         } catch(e) { toastr.error('Error'); b.disabled = false; b.innerText = 'BAYAR'; }
     }
 
@@ -545,5 +556,24 @@
             x.style.display = (n.includes(q) || id.includes(q)) ? 'flex' : 'none';
         });
     });
+
+    // Placeholder functions for payment flow (to be implemented in next tasks)
+    function showCashConfirmModal(data) {
+        console.log('Cash confirm modal:', data);
+        // TODO: Implement in Task 3
+        alert('Cash confirmation modal - To be implemented');
+    }
+
+    function showPaymentWaitingModal(data) {
+        console.log('Payment waiting modal:', data);
+        // TODO: Implement in Task 2
+        alert('Payment waiting modal - To be implemented');
+    }
+
+    function showReceiptModal(data) {
+        console.log('Receipt modal:', data);
+        // TODO: Implement in Task 4
+        alert('Receipt modal - To be implemented');
+    }
 </script>
 @endpush
