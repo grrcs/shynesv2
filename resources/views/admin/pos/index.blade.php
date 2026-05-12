@@ -360,6 +360,90 @@
     /* Custom Scrollbar */
     .cart-scroll::-webkit-scrollbar, .product-grid::-webkit-scrollbar { width: 4px; }
     .cart-scroll::-webkit-scrollbar-thumb, .product-grid::-webkit-scrollbar-thumb { background: var(--pos-border); }
+
+    /* Receipt Print Styles */
+    .receipt-container {
+        width: 302px; /* 80mm at 96dpi */
+        margin: 0 auto;
+        padding: 20px;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        line-height: 1.4;
+        background: white;
+        color: black;
+    }
+    
+    .receipt-header {
+        text-align: center;
+        border-bottom: 2px dashed #000;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .receipt-title {
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 4px;
+    }
+    
+    .receipt-info {
+        margin: 10px 0;
+        font-size: 11px;
+    }
+    
+    .receipt-items {
+        border-top: 1px dashed #000;
+        border-bottom: 1px dashed #000;
+        padding: 10px 0;
+        margin: 10px 0;
+    }
+    
+    .receipt-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 4px;
+    }
+    
+    .receipt-total {
+        font-size: 14px;
+        font-weight: bold;
+        text-align: right;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 2px solid #000;
+    }
+    
+    .receipt-footer {
+        text-align: center;
+        margin-top: 20px;
+        padding-top: 10px;
+        border-top: 2px dashed #000;
+    }
+
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        #receipt-modal, #receipt-modal * {
+            visibility: visible;
+        }
+        #receipt-modal {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+        .receipt-actions {
+            display: none !important;
+        }
+        .checkout-overlay {
+            background: white !important;
+        }
+        .checkout-box {
+            box-shadow: none !important;
+            border: none !important;
+        }
+    }
 </style>
 @endpush
 
@@ -498,6 +582,54 @@
         <div style="display: flex; gap: 16px; margin-top: 32px;">
             <button onclick="cancelCashConfirm()" class="btn-batal" style="flex: 1;">BATAL</button>
             <button onclick="confirmCashReceived()" class="btn-bayar" style="flex: 1;">UANG DITERIMA</button>
+        </div>
+    </div>
+</div>
+
+<!-- Receipt Modal -->
+<div id="receipt-modal" class="checkout-overlay" style="display: none;">
+    <div class="checkout-box" style="max-width: 400px;">
+        <div class="receipt-container">
+            <div class="receipt-header">
+                <div class="receipt-title">SHYNESS STORE</div>
+                <div style="font-size: 10px;">Jl. Contoh No. 123, Jakarta</div>
+                <div style="font-size: 10px;">Telp: 021-12345678</div>
+            </div>
+            
+            <div class="receipt-info">
+                <div>No: <span id="receipt-invoice">-</span></div>
+                <div>Tanggal: <span id="receipt-date">-</span></div>
+                <div>Kasir: <span id="receipt-cashier">Admin</span></div>
+                <div>Customer: <span id="receipt-customer">-</span></div>
+            </div>
+            
+            <div class="receipt-items">
+                <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 8px;">
+                    <span>Item</span>
+                    <span>Subtotal</span>
+                </div>
+                <div id="receipt-items-list"></div>
+            </div>
+            
+            <div class="receipt-total">
+                <div style="display: flex; justify-content: space-between;">
+                    <span>TOTAL:</span>
+                    <span id="receipt-total-amount">Rp 0</span>
+                </div>
+                <div style="font-size: 11px; font-weight: normal; margin-top: 4px;">
+                    Pembayaran: <span id="receipt-payment-type">-</span>
+                </div>
+            </div>
+            
+            <div class="receipt-footer">
+                <div style="font-size: 14px; font-weight: bold;">TERIMA KASIH</div>
+                <div style="font-size: 10px; margin-top: 4px;">Barang yang sudah dibeli tidak dapat dikembalikan</div>
+            </div>
+        </div>
+        
+        <div class="receipt-actions" style="display: flex; gap: 16px; margin-top: 24px;">
+            <button onclick="printReceipt()" class="btn-bayar" style="flex: 1;">PRINT</button>
+            <button onclick="closeReceiptAndReload()" class="btn-batal" style="flex: 1;">SELESAI</button>
         </div>
     </div>
 </div>
@@ -734,9 +866,54 @@
     }
 
     function showReceiptModal(data) {
-        console.log('Receipt modal:', data);
-        // TODO: Implement in Task 4
-        alert('Receipt modal - To be implemented');
+        // Populate receipt data
+        document.getElementById('receipt-invoice').innerText = data.invoice_number || '-';
+        document.getElementById('receipt-date').innerText = new Date().toLocaleString('id-ID');
+        document.getElementById('receipt-cashier').innerText = '{{ Auth::user()->name ?? "Admin" }}';
+        document.getElementById('receipt-customer').innerText = data.customer_name || '-';
+        document.getElementById('receipt-total-amount').innerText = 'Rp ' + f(data.total);
+        
+        // Map payment type to readable name
+        const paymentTypes = {
+            'cash': 'Tunai',
+            'cod': 'COD',
+            'QRIS': 'QRIS',
+            'VA': 'Virtual Account'
+        };
+        document.getElementById('receipt-payment-type').innerText = paymentTypes[data.payment_type] || data.payment_type;
+        
+        // Populate items list
+        let itemsHtml = '';
+        if (posCart && posCart.length > 0) {
+            posCart.forEach(item => {
+                const subtotal = item.price * item.q;
+                itemsHtml += `
+                    <div style="margin-bottom: 6px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>${item.name}</span>
+                            <span>Rp ${f(subtotal)}</span>
+                        </div>
+                        <div style="font-size: 10px; color: #666;">
+                            ${item.q} x Rp ${f(item.price)}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        document.getElementById('receipt-items-list').innerHTML = itemsHtml;
+        
+        // Show modal
+        document.getElementById('receipt-modal').style.display = 'flex';
+    }
+
+    function printReceipt() {
+        window.print();
+    }
+
+    function closeReceiptAndReload() {
+        document.getElementById('receipt-modal').style.display = 'none';
+        posCart = []; // Clear cart
+        location.reload();
     }
 </script>
 @endpush
