@@ -448,7 +448,7 @@
 </div>
 @endsection
 
-@section('scripts')
+@push('scripts')
 <script>
     let posCart = [];
 
@@ -546,4 +546,4 @@
         });
     });
 </script>
-@endsection
+@endpush
