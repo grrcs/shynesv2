@@ -22,6 +22,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'tenant_id',
     ];
 
     /**
@@ -46,6 +47,14 @@ class User extends Authenticatable
     public function isPenjual(): bool
     {
         return $this->role === 'penjual';
+    }
+
+    /**
+     * Check if user is supplier.
+     */
+    public function isSupplier(): bool
+    {
+        return $this->role === 'supplier';
     }
 
     public function sellerContract()

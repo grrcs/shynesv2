@@ -23,6 +23,12 @@ class TenantIsolation
             return redirect()->route('login');
         }
 
+        // Admin can access all tenants - bypass isolation
+        if ($user->role === 'admin') {
+            TenantContext::set('admin');
+            return $next($request);
+        }
+
         $tenantId = $user->tenant_id;
 
         if (!$tenantId) {
