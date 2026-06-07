@@ -488,7 +488,7 @@
 
         <div class="product-grid">
             @foreach($products as $product)
-                <div class="p-card" onclick="addToPosCart({{ $product->id }}, {{ json_encode($product->title) }}, {{ $product->is_discount_active && $product->discount_price ? $product->discount_price : $product->price }}, '{{ $product->image_url }}', '{{ $product->sku ?? $product->id }}')">
+                <div class="p-card" onclick="addToPosCart({{ $product->id }}, '{{ str_replace(["'", '"'], '', $product->title) }}', {{ $product->is_discount_active && $product->discount_price ? $product->discount_price : $product->price }}, '{{ $product->image_url }}', '{{ $product->sku ?? $product->id }}')">
                     <div class="p-img">
                         <img src="{{ $product->image_url }}" alt="{{ $product->title }}">
                     </div>
