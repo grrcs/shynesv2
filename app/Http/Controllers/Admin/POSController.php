@@ -217,6 +217,7 @@ class POSController extends Controller
             'payment_token' => $paymentToken,
             'payment_type' => $paymentCode,
             'payment_data' => $paymentData,
+            'payment_debug' => isset($paymentResult) ? $paymentResult : null,
         ]);
 
         }); // end DB::transaction
