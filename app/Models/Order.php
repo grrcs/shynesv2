@@ -18,6 +18,7 @@ class Order extends Model
         'payment_reference',
         'payment_channel',
         'payment_token',
+        'payment_url',
         'shipping_recipient_name',
         'shipping_phone_number',
         'shipping_address',

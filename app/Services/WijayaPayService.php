@@ -54,6 +54,7 @@ class WijayaPayService
                     'payment_reference' => $data['trx_reference'] ?? $refId,
                     'payment_channel' => $paymentChannel,
                     'payment_token' => $data['trx_reference'] ?? null,
+                    'payment_url' => $paymentUrl,
                 ]);
 
                 // Build payment URL based on channel type

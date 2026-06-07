@@ -228,15 +228,8 @@ class PaymentController extends Controller
 
         $order->load('paymentOption');
 
-        // Get payment URL from order data
-        $paymentUrl = null;
-        if ($order->payment_token) {
-            // Try to get fresh status/payment info
-            $statusResult = $this->wijayaPayService->checkPaymentStatus($order->invoice_number);
-            if ($statusResult['success'] && isset($statusResult['payment_url'])) {
-                $paymentUrl = $statusResult['payment_url'];
-            }
-        }
+        // Use saved payment_url from the order (stored during createPayment)
+        $paymentUrl = $order->payment_url;
 
         // Calculate expiry seconds based on payment type
         $paymentCode = $order->paymentOption->code ?? 'QRIS';
