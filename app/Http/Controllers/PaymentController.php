@@ -3,18 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use App\Services\WijayaPayService;
+use App\Services\PakasirService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Models\PaymentOption;
 
 class PaymentController extends Controller
 {
-    protected WijayaPayService $wijayaPayService;
+    protected PakasirService $pakasirService;
 
-    public function __construct(WijayaPayService $wijayaPayService)
+    public function __construct(PakasirService $pakasirService)
     {
-        $this->wijayaPayService = $wijayaPayService;
+        $this->pakasirService = $pakasirService;
     }
 
     public function getPaymentOptions()
@@ -48,25 +48,30 @@ class PaymentController extends Controller
 
     public function createPayment(Request $request, Order $order)
     {
-        // Check authorization
         if ($order->user_id !== auth()->id()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized'
-            ], 403);
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
-        // Get payment channel from request or order's payment option
-        $paymentChannel = $request->input('payment_channel');
-
-        $result = $this->wijayaPayService->createPayment($order, $paymentChannel);
+        $paymentChannel = $request->input('payment_channel', 'qris');
+        $method = $this->toPakasirMethod($paymentChannel);
+        $result = $this->pakasirService->createTransaction(
+            $order->invoice_number,
+            (int) $order->total_price,
+            $method
+        );
 
         if ($result['success']) {
+            $order->update([
+                'payment_channel' => $paymentChannel,
+                'payment_token' => $result['payment_number'] ?? null,
+                'payment_url' => $result['payment_number'] ?? null,
+            ]);
+
             return response()->json([
                 'success' => true,
-                'payment_url' => $result['payment_url'] ?? null,
-                'payment_token' => $result['payment_token'] ?? null,
-                'data' => $result['data'] ?? null,
+                'payment_url' => $result['payment_number'] ?? null,
+                'payment_token' => $result['payment_number'] ?? null,
+                'data' => $result['raw'] ?? null,
                 'message' => 'Payment created successfully'
             ]);
         }
@@ -79,22 +84,14 @@ class PaymentController extends Controller
 
     public function checkStatus(Request $request, Order $order)
     {
-        // Check authorization
         if ($order->user_id !== auth()->id()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized'
-            ], 403);
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
         if (!$order->invoice_number) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Order has no payment reference'
-            ], 400);
+            return response()->json(['success' => false, 'message' => 'Order has no payment reference'], 400);
         }
 
-        // Check if order has expired (15 minutes for QRIS, 60 minutes for VA)
         $expiryMinutes = $this->getExpiryMinutes($order);
         $isExpired = $order->status === 'pending'
             && $order->created_at->addMinutes($expiryMinutes)->isPast();
@@ -110,14 +107,15 @@ class PaymentController extends Controller
             ]);
         }
 
-        $statusResult = $this->wijayaPayService->checkPaymentStatus($order->invoice_number);
+        $statusResult = $this->pakasirService->checkStatus(
+            $order->invoice_number,
+            (int) $order->total_price
+        );
 
-        // If WijayaPay says paid, update order
         if ($statusResult['success'] && $statusResult['status'] === 'SUCCESS' && $order->status === 'pending') {
             $order->update(['status' => 'completed']);
         }
 
-        // Calculate remaining time
         $remainingSeconds = max(0, $order->created_at->addMinutes($expiryMinutes)->diffInSeconds(now(), false) * -1);
 
         return response()->json([
@@ -132,39 +130,38 @@ class PaymentController extends Controller
 
     private function getExpiryMinutes(Order $order): int
     {
-        // VA gets longer expiry than QRIS
         $paymentOption = $order->paymentOption;
         if ($paymentOption && str_contains(strtolower($paymentOption->code ?? ''), 'va')) {
-            return 60; // 60 minutes for Virtual Account
+            return 60;
         }
-        return 15; // 15 minutes for QRIS
+        return 15;
     }
 
     public function paymentSuccess(Request $request)
     {
-        $refId = $request->query('ref_id') ?? $request->query('trxNo');
+        $orderId = $request->query('order_id') ?? $request->query('trxNo');
 
-        if ($refId) {
-            $statusResult = $this->wijayaPayService->checkPaymentStatus($refId);
+        if ($orderId) {
+            $order = Order::where('invoice_number', $orderId)->first();
+            if ($order) {
+                $statusResult = $this->pakasirService->checkStatus(
+                    $order->invoice_number,
+                    (int) $order->total_price
+                );
 
-            if ($statusResult['success'] && $statusResult['status'] === 'SUCCESS') {
-                $order = Order::where('invoice_number', $refId)->first();
-                if ($order) {
+                if ($statusResult['success'] && $statusResult['status'] === 'SUCCESS') {
                     $order->update(['status' => 'completed']);
 
-                    // Clear cart if user is authenticated
                     if (auth()->check() && $order->user_id === auth()->id()) {
                         auth()->user()->cartItems()->delete();
                     }
 
-                    // Redirect to order detail
                     return redirect()->route('orders.show', $order->id)
                         ->with('success', 'Pembayaran berhasil!');
                 }
             }
         }
 
-        // Fallback: redirect to home or login
         if (auth()->check()) {
             return redirect()->route('orders.my')->with('error', 'Pembayaran tidak valid atau gagal.');
         }
@@ -174,16 +171,19 @@ class PaymentController extends Controller
 
     public function paymentCancel(Request $request)
     {
-        $refId = $request->query('ref_id') ?? $request->query('trxNo');
+        $orderId = $request->query('order_id') ?? $request->query('trxNo');
 
-        if ($refId) {
-            $order = Order::where('invoice_number', $refId)->first();
+        if ($orderId) {
+            $order = Order::where('invoice_number', $orderId)->first();
             if ($order) {
+                $this->pakasirService->cancelTransaction(
+                    $order->invoice_number,
+                    (int) $order->total_price
+                );
                 $order->update(['status' => 'cancelled']);
             }
         }
 
-        // Redirect based on auth status
         if (auth()->check()) {
             return redirect()->route('cart.index')->with('error', 'Pembayaran dibatalkan.');
         }
@@ -195,11 +195,11 @@ class PaymentController extends Controller
     {
         $payload = $request->all();
 
-        Log::info('WijayaPay Webhook Received', [
+        Log::info('Pakasir Webhook Received', [
             'payload' => $payload,
         ]);
 
-        $result = $this->wijayaPayService->processWebhook($payload);
+        $result = $this->pakasirService->processWebhook($payload);
 
         if ($result['success']) {
             return response()->json([
@@ -208,7 +208,7 @@ class PaymentController extends Controller
             ]);
         }
 
-        Log::warning('WijayaPay Webhook Processing Failed', [
+        Log::warning('Pakasir Webhook Processing Failed', [
             'payload' => $payload,
             'result' => $result,
         ]);
@@ -221,28 +221,51 @@ class PaymentController extends Controller
 
     public function showPaymentWaiting(Order $order)
     {
-        // Check authorization
         if ($order->user_id !== auth()->id()) {
             abort(403, 'Unauthorized');
         }
 
         $order->load('paymentOption');
 
-        // Use saved payment_url from the order (stored during createPayment)
         $paymentUrl = $order->payment_url;
+        $isQris = $order->paymentOption && $order->paymentOption->code === 'QRIS';
 
-        // Calculate expiry seconds based on payment type
-        $paymentCode = $order->paymentOption->code ?? 'QRIS';
-        if (str_contains(strtolower($paymentCode), 'va')) {
-            $expirySeconds = 60 * 60; // 60 minutes for VA
+        if ($isQris && $paymentUrl) {
+            $qrDataUri = $this->pakasirService->generateQRDataUri($paymentUrl);
         } else {
-            $expirySeconds = 15 * 60; // 15 minutes for QRIS
+            $qrDataUri = null;
         }
 
-        // Adjust for time already elapsed
+        $paymentCode = $order->paymentOption->code ?? 'QRIS';
+        if (str_contains(strtolower($paymentCode), 'va')) {
+            $expirySeconds = 60 * 60;
+        } else {
+            $expirySeconds = 15 * 60;
+        }
+
         $elapsed = now()->diffInSeconds($order->created_at);
         $expirySeconds = max(0, $expirySeconds - $elapsed);
 
-        return view('checkout.payment-waiting', compact('order', 'paymentUrl', 'expirySeconds'));
+        return view('checkout.payment-waiting', compact('order', 'paymentUrl', 'expirySeconds', 'qrDataUri', 'isQris'));
+    }
+
+    private function toPakasirMethod(string $code): string
+    {
+        return match (strtoupper($code)) {
+            'QRIS' => 'qris',
+            'BRIVA' => 'bri_va',
+            'BCAVA' => 'bni_va',
+            'BNIVA' => 'bni_va',
+            'MANDIRIVA' => 'permata_va',
+            'BSIVA' => 'bni_va',
+            'CIMBVA' => 'cimb_niaga_va',
+            'PERMATAVA' => 'permata_va',
+            'MAYBANKVA' => 'maybank_va',
+            'BNCVA' => 'bnc_va',
+            'SAMPOERNAVA' => 'sampoerna_va',
+            'ATMBERSAMAVA' => 'atm_bersama_va',
+            'ARTHAGRAHAVA' => 'artha_graha_va',
+            default => 'qris',
+        };
     }
 }

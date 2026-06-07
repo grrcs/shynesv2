@@ -159,10 +159,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/admin/sellers/products/{sellerProduct}/reject', [App\Http\Controllers\Admin\SellerManagementController::class, 'rejectProduct'])->name('admin.sellers.products.reject');
 });
 
-// WijayaPay Payment Routes (outside auth middleware for webhook and callbacks)
-Route::post('/payment/wijayapay/create/{order}', [PaymentController::class, 'createPayment'])->name('payment.wijayapay.create')->middleware('auth');
-Route::get('/payment/wijayapay/status/{order}', [PaymentController::class, 'checkStatus'])->name('payment.wijayapay.status')->middleware('auth');
-Route::get('/payment/wijayapay/waiting/{order}', [PaymentController::class, 'showPaymentWaiting'])->name('payment.wijayapay.waiting')->middleware('auth');
-Route::get('/payment/wijayapay/success', [PaymentController::class, 'paymentSuccess'])->name('payment.wijayapay.success');
-Route::get('/payment/wijayapay/cancel', [PaymentController::class, 'paymentCancel'])->name('payment.wijayapay.cancel');
-Route::post('/payment/wijayapay/callback', [PaymentController::class, 'webhook'])->name('payment.wijayapay.callback');
+// Pakasir Payment Routes
+Route::post('/payment/pakasir/create/{order}', [PaymentController::class, 'createPayment'])->name('payment.pakasir.create')->middleware('auth');
+Route::get('/payment/pakasir/status/{order}', [PaymentController::class, 'checkStatus'])->name('payment.pakasir.status')->middleware('auth');
+Route::get('/payment/pakasir/waiting/{order}', [PaymentController::class, 'showPaymentWaiting'])->name('payment.pakasir.waiting')->middleware('auth');
+Route::get('/payment/pakasir/success', [PaymentController::class, 'paymentSuccess'])->name('payment.pakasir.success');
+Route::get('/payment/pakasir/cancel', [PaymentController::class, 'paymentCancel'])->name('payment.pakasir.cancel');
+Route::post('/payment/pakasir/callback', [PaymentController::class, 'webhook'])->name('payment.pakasir.callback');

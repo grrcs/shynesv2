@@ -29,18 +29,16 @@
                 </div>
             </div>
 
-            @if(isset($paymentUrl) && $paymentUrl)
-                @php $isQris = $order->paymentOption && $order->paymentOption->code === 'QRIS'; @endphp
-                @if($isQris)
+            @if(isset($qrDataUri) && $qrDataUri)
                 <div class="mb-4">
-                    <img src="{{ $paymentUrl }}" alt="QRIS" class="mx-auto" style="max-width: 300px;">
+                    <img src="{{ $qrDataUri }}" alt="QRIS" class="mx-auto" style="max-width: 300px;">
                     <p class="text-sm text-gray-500 mt-2">Scan QR Code untuk membayar</p>
                 </div>
-                @else
-                <a href="{{ $paymentUrl }}" target="_blank" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 mb-4">
-                    Buka Halaman Pembayaran
-                </a>
-                @endif
+            @elseif(isset($paymentUrl) && $paymentUrl && !($isQris ?? false))
+                <div class="mb-4">
+                    <p class="text-lg font-mono font-bold tracking-wider">{{ $paymentUrl }}</p>
+                    <p class="text-sm text-gray-500 mt-2">Gunakan nomor di atas untuk transfer</p>
+                </div>
             @endif
         </div>
 

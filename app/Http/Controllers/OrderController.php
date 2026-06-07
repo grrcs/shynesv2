@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Product;
 use App\Services\CheckoutService;
-use App\Services\WijayaPayService;
+use App\Services\PakasirService;
 use Illuminate\Http\Request;
 use Exception;
 
@@ -46,11 +46,10 @@ class OrderController extends Controller
         return view('checkout.payment-options', compact('cartItems', 'paymentOptions', 'addresses'));
     }
 
-    public function store(Request $request, CheckoutService $checkoutService, WijayaPayService $wijayaPayService)
+    public function store(Request $request, CheckoutService $checkoutService, PakasirService $pakasirService)
     {
         $cartItems = auth()->user()->cartItems()->with('product')->get();
         
-        // Validate payment option
         $validated = $request->validate([
             'payment_option_id' => 'required|exists:payment_options,id',
             'address_id' => 'required|exists:addresses,id',
@@ -66,27 +65,9 @@ class OrderController extends Controller
                 $validated['coupon_code'] ?? null
             );
             
-            // Send notification to user
             $order->user->notify(new \App\Notifications\OrderCreatedNotification($order));
             
-            // Auto-trigger Wijaya Pay if payment option is a gateway channel
-            $nonGatewayCodes = ['cash', 'cod', 'bank_transfer', 'credit_card', 'ewallet'];
-            $paymentCode = $order->paymentOption->code ?? null;
-            
-            if ($paymentCode && !in_array($paymentCode, $nonGatewayCodes)) {
-                $paymentResult = $wijayaPayService->createPayment($order);
-                
-                if ($paymentResult['success']) {
-                    return redirect()->route('payment.wijayapay.waiting', $order->id)
-                        ->with('success', 'Pesanan berhasil dibuat! Silakan selesaikan pembayaran.');
-                }
-                
-                // Payment creation failed but order exists - redirect with warning
-                return redirect()->route('orders.show', $order->id)
-                    ->with('error', 'Pesanan dibuat, tapi gagal membuat pembayaran: ' . ($paymentResult['message'] ?? 'Unknown error'));
-            }
-            
-            return redirect()->route('orders.my')->with('success', 'Pesanan berhasil dibuat! Silakan tunggu konfirmasi admin.');
+            return $this->processPayment($order, $pakasirService);
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -301,7 +282,7 @@ class OrderController extends Controller
         return view('checkout.direct-buy', compact('product', 'addresses', 'paymentOptions', 'subtotal', 'priceToUse'));
     }
 
-    public function storeDirectBuy(Request $request, CheckoutService $checkoutService, WijayaPayService $wijayaPayService)
+    public function storeDirectBuy(Request $request, CheckoutService $checkoutService, PakasirService $pakasirService)
     {
         $validated = $request->validate([
             'product_id' => 'required|exists:products,id',
@@ -332,25 +313,60 @@ class OrderController extends Controller
 
             $order->user->notify(new \App\Notifications\OrderCreatedNotification($order));
 
-            // Auto-trigger Wijaya Pay if payment option is a gateway channel
-            $nonGatewayCodes = ['cash', 'cod', 'bank_transfer', 'credit_card', 'ewallet'];
-            $paymentCode = $order->paymentOption->code ?? null;
-
-            if ($paymentCode && !in_array($paymentCode, $nonGatewayCodes)) {
-                $paymentResult = $wijayaPayService->createPayment($order);
-
-                if ($paymentResult['success']) {
-                    return redirect()->route('payment.wijayapay.waiting', $order->id)
-                        ->with('success', 'Pesanan berhasil dibuat! Silakan selesaikan pembayaran.');
-                }
-
-                return redirect()->route('orders.show', $order->id)
-                    ->with('error', 'Pesanan dibuat, tapi gagal membuat pembayaran: ' . ($paymentResult['message'] ?? 'Unknown error'));
-            }
-
-            return redirect()->route('orders.show', $order->id)->with('success', 'Pesanan berhasil dibuat! Silakan tunggu konfirmasi admin.');
+            return $this->processPayment($order, $pakasirService);
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());
         }
+    }
+
+    private function processPayment($order, PakasirService $pakasirService)
+    {
+        $nonGatewayCodes = ['cash', 'cod', 'bank_transfer', 'credit_card', 'ewallet'];
+        $paymentCode = $order->paymentOption->code ?? null;
+
+        if ($paymentCode && !in_array($paymentCode, $nonGatewayCodes)) {
+            $method = $this->toPakasirMethod($paymentCode);
+            $paymentResult = $pakasirService->createTransaction(
+                $order->invoice_number,
+                (int) $order->total_price,
+                $method
+            );
+
+            if ($paymentResult['success']) {
+                $order->update([
+                    'payment_channel' => $paymentCode,
+                    'payment_token' => $paymentResult['payment_number'] ?? null,
+                    'payment_url' => $paymentResult['payment_number'] ?? null,
+                ]);
+
+                return redirect()->route('payment.pakasir.waiting', $order->id)
+                    ->with('success', 'Pesanan berhasil dibuat! Silakan selesaikan pembayaran.');
+            }
+
+            return redirect()->route('orders.show', $order->id)
+                ->with('error', 'Pesanan dibuat, tapi gagal membuat pembayaran: ' . ($paymentResult['message'] ?? 'Unknown error'));
+        }
+
+        return redirect()->route('orders.my')->with('success', 'Pesanan berhasil dibuat! Silakan tunggu konfirmasi admin.');
+    }
+
+    private function toPakasirMethod(string $code): string
+    {
+        return match (strtoupper($code)) {
+            'QRIS' => 'qris',
+            'BRIVA' => 'bri_va',
+            'BCAVA' => 'bni_va',
+            'BNIVA' => 'bni_va',
+            'MANDIRIVA' => 'permata_va',
+            'BSIVA' => 'bni_va',
+            'CIMBVA' => 'cimb_niaga_va',
+            'PERMATAVA' => 'permata_va',
+            'MAYBANKVA' => 'maybank_va',
+            'BNCVA' => 'bnc_va',
+            'SAMPOERNAVA' => 'sampoerna_va',
+            'ATMBERSAMAVA' => 'atm_bersama_va',
+            'ARTHAGRAHAVA' => 'artha_graha_va',
+            default => 'qris',
+        };
     }
 }

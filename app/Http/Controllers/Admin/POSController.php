@@ -190,19 +190,33 @@ class POSController extends Controller
             'changed_at' => now(),
         ]);
 
-        // For digital payments (QRIS, VA, etc.), create payment via WijayaPayService
+        // For digital payments (QRIS, VA, etc.), create payment via PakasirService
         $paymentUrl = null;
         $paymentToken = null;
         $paymentData = null;
         
         if (!in_array($paymentCode, ['cash', 'cod'])) {
-            $wijayaPayService = app(\App\Services\WijayaPayService::class);
-            $paymentResult = $wijayaPayService->createPayment($order, $paymentCode);
+            $pakasirService = app(\App\Services\PakasirService::class);
+            $method = $this->toPakasirMethod($paymentCode);
+            $paymentResult = $pakasirService->createTransaction(
+                $invoiceNumber,
+                (int) $subtotal,
+                $method
+            );
             
             if ($paymentResult['success']) {
-                $paymentUrl = $paymentResult['payment_url'];
-                $paymentToken = $paymentResult['payment_token'];
-                $paymentData = $paymentResult['data'] ?? null;
+                $paymentNumber = $paymentResult['payment_number'];
+                $paymentUrl = $paymentCode === 'QRIS' && $paymentNumber
+                    ? $pakasirService->generateQRDataUri($paymentNumber)
+                    : $paymentNumber;
+                $paymentToken = $paymentNumber;
+                $paymentData = $paymentResult['raw'] ?? null;
+
+                $order->update([
+                    'payment_channel' => $paymentCode,
+                    'payment_token' => $paymentNumber,
+                    'payment_url' => $paymentNumber,
+                ]);
             }
         }
 
@@ -217,7 +231,6 @@ class POSController extends Controller
             'payment_token' => $paymentToken,
             'payment_type' => $paymentCode,
             'payment_data' => $paymentData,
-            'payment_debug' => isset($paymentResult) ? $paymentResult : null,
         ]);
 
         }); // end DB::transaction
@@ -355,11 +368,11 @@ class POSController extends Controller
             ]);
         }
 
-        // For digital payments (QRIS, VA), check via WijayaPayService
+        // For digital payments (QRIS, VA), check via PakasirService
         if ($order->payment_token) {
             try {
-                $wijayaPayService = app(\App\Services\WijayaPayService::class);
-                $statusResult = $wijayaPayService->checkPaymentStatus($order->invoice_number);
+                $pakasirService = app(\App\Services\PakasirService::class);
+                $statusResult = $pakasirService->checkStatus($order->invoice_number, (int) $order->total_price);
                 
                 if ($statusResult['success'] && $statusResult['status'] === 'SUCCESS') {
                     // Update order status if paid
@@ -393,5 +406,25 @@ class POSController extends Controller
             'status' => $order->status === 'paid' || $order->status === 'completed' ? 'paid' : 'pending',
             'paid_at' => $order->updated_at
         ]);
+    }
+
+    private function toPakasirMethod(string $code): string
+    {
+        return match (strtoupper($code)) {
+            'QRIS' => 'qris',
+            'BRIVA' => 'bri_va',
+            'BCAVA' => 'bni_va',
+            'BNIVA' => 'bni_va',
+            'MANDIRIVA' => 'permata_va',
+            'BSIVA' => 'bni_va',
+            'CIMBVA' => 'cimb_niaga_va',
+            'PERMATAVA' => 'permata_va',
+            'MAYBANKVA' => 'maybank_va',
+            'BNCVA' => 'bnc_va',
+            'SAMPOERNAVA' => 'sampoerna_va',
+            'ATMBERSAMAVA' => 'atm_bersama_va',
+            'ARTHAGRAHAVA' => 'artha_graha_va',
+            default => 'qris',
+        };
     }
 }
