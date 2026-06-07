@@ -682,7 +682,7 @@
         let i = posCart.find(x => x.id === id);
         if (i) i.q++;
         else posCart.push({id, name, price, img, sku, q: 1});
-        render();
+        renderCart();
     }
 
     function updatePosQty(id, d) {
@@ -691,15 +691,15 @@
             i.q += d;
             if (i.q < 1) posCart = posCart.filter(x => x.id !== id);
         }
-        render();
+        renderCart();
     }
 
     function removeFromPosCart(id) {
         posCart = posCart.filter(x => x.id !== id);
-        render();
+        renderCart();
     }
 
-    function render() {
+    function renderCart() {
         let c = document.getElementById('cart-container');
         let html = '';
         let t = 0;
