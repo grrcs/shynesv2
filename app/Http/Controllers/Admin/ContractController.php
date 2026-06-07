@@ -22,20 +22,22 @@ class ContractController extends Controller
     public function index()
     {
         $user = auth()->user();
-        $tenantId = TenantContext::get();
 
         if ($user->role === 'admin') {
-            $contracts = DistributorContract::with('supplier')
-                ->where('tenant_id', $tenantId)
+            $contracts = DistributorContract::withoutGlobalScope('tenant')
+                ->with('supplier')
                 ->latest()
                 ->paginate(20);
         } else {
-            $supplier = Supplier::where('user_id', $user->id)->first();
+            $supplier = Supplier::withoutGlobalScope('tenant')
+                ->where('user_id', $user->id)
+                ->first();
             $contracts = collect();
             if ($supplier) {
-                $contracts = DistributorContract::with('supplier')
+                $contracts = DistributorContract::withoutGlobalScope('tenant')
+                    ->with('supplier')
                     ->where('supplier_id', $supplier->id)
-                    ->where('tenant_id', $tenantId)
+                    ->where('tenant_id', $user->tenant_id)
                     ->latest()
                     ->paginate(20);
             }
@@ -46,7 +48,7 @@ class ContractController extends Controller
 
     public function create()
     {
-        $suppliers = Supplier::where('tenant_id', TenantContext::get())->get();
+        $suppliers = Supplier::withoutGlobalScope('tenant')->get();
         return view('admin.contracts.create', compact('suppliers'));
     }
 
@@ -90,15 +92,13 @@ class ContractController extends Controller
 
     public function show(DistributorContract $contract)
     {
-        $tenantId = TenantContext::get();
-
-        if ($contract->tenant_id !== $tenantId) {
-            abort(403, 'Unauthorized access to this contract');
-        }
-
         $user = auth()->user();
+
         if ($user->role !== 'admin') {
-            $supplier = Supplier::where('user_id', $user->id)->first();
+            if ($contract->tenant_id !== $user->tenant_id) {
+                abort(403, 'Unauthorized access to this contract');
+            }
+            $supplier = Supplier::withoutGlobalScope('tenant')->where('user_id', $user->id)->first();
             if (!$supplier || $contract->supplier_id !== $supplier->id) {
                 abort(403, 'Unauthorized access to this contract');
             }
@@ -110,15 +110,13 @@ class ContractController extends Controller
 
     public function download(DistributorContract $contract)
     {
-        $tenantId = TenantContext::get();
-
-        if ($contract->tenant_id !== $tenantId) {
-            abort(403, 'Unauthorized access to this contract');
-        }
-
         $user = auth()->user();
+
         if ($user->role !== 'admin') {
-            $supplier = Supplier::where('user_id', $user->id)->first();
+            if ($contract->tenant_id !== $user->tenant_id) {
+                abort(403, 'Unauthorized access to this contract');
+            }
+            $supplier = Supplier::withoutGlobalScope('tenant')->where('user_id', $user->id)->first();
             if (!$supplier || $contract->supplier_id !== $supplier->id) {
                 abort(403, 'Unauthorized access to this contract');
             }
@@ -143,10 +141,12 @@ class ContractController extends Controller
 
     public function destroy(DistributorContract $contract)
     {
-        $tenantId = TenantContext::get();
+        $user = auth()->user();
 
-        if ($contract->tenant_id !== $tenantId) {
-            abort(403, 'Unauthorized access to this contract');
+        if ($user->role !== 'admin') {
+            if ($contract->tenant_id !== $user->tenant_id) {
+                abort(403, 'Unauthorized access to this contract');
+            }
         }
 
         Storage::delete($contract->file_path);

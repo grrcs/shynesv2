@@ -24,7 +24,8 @@ class Supplier extends Model
     protected static function booted(): void
     {
         static::addGlobalScope('tenant', function ($query) {
-            if ($tenantId = app(\App\Services\TenantContext::class)->get()) {
+            $tenantId = \App\Services\TenantContext::get();
+            if ($tenantId && $tenantId !== 'admin') {
                 $query->where('tenant_id', $tenantId);
             }
         });

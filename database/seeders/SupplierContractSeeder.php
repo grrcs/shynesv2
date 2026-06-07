@@ -241,7 +241,7 @@ class SupplierContractSeeder extends Seeder
                 'name' => $data['contact'],
                 'email' => 'supplier' . substr($data['code'], 2) . '@test.com',
                 'role' => 'supplier',
-                'password' => bcrypt('password'),
+                'password' => 'password',
                 'tenant_id' => $tenantId,
                 'email_verified_at' => now(),
             ]);
