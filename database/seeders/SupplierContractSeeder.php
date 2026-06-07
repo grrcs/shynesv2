@@ -230,19 +230,21 @@ class SupplierContractSeeder extends Seeder
 
     public function run(): void
     {
+        DistributorContract::whereIn('contract_code', array_column($this->contracts, 'code'))->forceDelete();
+        Supplier::whereIn('id', Supplier::pluck('id'))->forceDelete();
+        User::where('role', 'supplier')->forceDelete();
+
         foreach ($this->contracts as $data) {
             $tenantId = (string) Str::uuid();
 
-            $user = User::firstOrCreate(
-                ['email' => 'supplier' . substr($data['code'], 2) . '@test.com'],
-                [
-                    'name' => $data['contact'],
-                    'role' => 'supplier',
-                    'password' => bcrypt('password'),
-                    'tenant_id' => $tenantId,
-                    'email_verified_at' => now(),
-                ]
-            );
+            $user = User::create([
+                'name' => $data['contact'],
+                'email' => 'supplier' . substr($data['code'], 2) . '@test.com',
+                'role' => 'supplier',
+                'password' => bcrypt('password'),
+                'tenant_id' => $tenantId,
+                'email_verified_at' => now(),
+            ]);
 
             $supplier = Supplier::create([
                 'user_id' => $user->id,
