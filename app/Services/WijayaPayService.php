@@ -50,13 +50,6 @@ class WijayaPayService
             if ($response->successful() && isset($responseData['success']) && $responseData['success'] === true) {
                 $data = $responseData['data'];
 
-                $order->update([
-                    'payment_reference' => $data['trx_reference'] ?? $refId,
-                    'payment_channel' => $paymentChannel,
-                    'payment_token' => $data['trx_reference'] ?? null,
-                    'payment_url' => $paymentUrl,
-                ]);
-
                 // Build payment URL based on channel type
                 $paymentUrl = null;
                 if (isset($data['qr_image'])) {
@@ -66,6 +59,13 @@ class WijayaPayService
                 } elseif (isset($data['nomor_pembayaran'])) {
                     $paymentUrl = $data['nomor_pembayaran'];
                 }
+
+                $order->update([
+                    'payment_reference' => $data['trx_reference'] ?? $refId,
+                    'payment_channel' => $paymentChannel,
+                    'payment_token' => $data['trx_reference'] ?? null,
+                    'payment_url' => $paymentUrl,
+                ]);
 
                 return [
                     'success' => true,
