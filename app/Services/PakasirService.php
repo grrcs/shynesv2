@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
+use chillerlan\QRCode\Output\QRMarkupSVG;
 
 class PakasirService
 {
@@ -188,18 +189,14 @@ class PakasirService
     public function generateQRDataUri(string $data, int $size = 300): string
     {
         $options = new QROptions([
-            'outputType' => QRCode::OUTPUT_IMAGE_PNG,
+            'outputInterface' => QRMarkupSVG::class,
             'scale' => 10,
+            'outputBase64' => true,
+            'svgAddXmlHeader' => false,
         ]);
 
         $qrcode = new QRCode($options);
-        $imageData = $qrcode->render($data);
-
-        if (str_starts_with($imageData, 'data:')) {
-            return $imageData;
-        }
-
-        return 'data:image/png;base64,' . base64_encode($imageData);
+        return $qrcode->render($data);
     }
 
     public function getPaymentUrl(string $orderId, int $amount, ?string $redirect = null, bool $qrisOnly = false): string
