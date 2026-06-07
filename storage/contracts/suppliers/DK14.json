@@ -1,0 +1,30 @@
+{
+  "contract_code": "DK14",
+  "supplier": {
+    "company_name": "PT. Busana Eksklusif Indonesia",
+    "contact_person": "Indah Cahyani",
+    "email": "indah@busanaeksklusif.co.id",
+    "phone": "0811-8888-9999",
+    "address": "Jl. Darmawangsa Raya No. 28, Jakarta Selatan, DKI Jakarta 12160"
+  },
+  "distributor": {
+    "company_name": "CV. Mode Terkini",
+    "contact_person": "Andi Firmansyah",
+    "email": "andi@modeterkini.co.id",
+    "phone": "0899-1234-5678",
+    "address": "Jl. Dr. Sutomo No. 44, Pekanbaru, Riau 28111"
+  },
+  "contract": {
+    "start_date": "2026-02-01",
+    "end_date": "2026-05-01",
+    "value": 120000000,
+    "terms": "Kontrak jangka pendek untuk seasonal collection Ramadhan. Pembayaran full di muka.",
+    "status": "terminated"
+  },
+  "products": [
+    { "name": "SHNS Croptop Edition - Gold (Limited)", "qty": 200, "price": 150000 },
+    { "name": "SN Promise Oversize T-shirt - White Gold (Limited)", "qty": 300, "price": 120000 },
+    { "name": "Hellcat Boxy Cut Hoodie - Black Gold (Limited)", "qty": 150, "price": 220000 }
+  ],
+  "signed_date": "2026-01-15"
+}

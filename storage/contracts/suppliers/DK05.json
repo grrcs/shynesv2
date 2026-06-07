@@ -1,0 +1,31 @@
+{
+  "contract_code": "DK05",
+  "supplier": {
+    "company_name": "UD. Fashion Remaja",
+    "contact_person": "Maya Anggraini",
+    "email": "maya@fashionremaja.co.id",
+    "phone": "0819-8765-4321",
+    "address": "Jl. Pahlawan No. 21, Malang, Jawa Timur 65112"
+  },
+  "distributor": {
+    "company_name": "PT. Distribusi Prima Sentosa",
+    "contact_person": "Bagus Pratama",
+    "email": "bagus@primatosa.co.id",
+    "phone": "0822-4567-8901",
+    "address": "Jl. Raya Darmo Permai No. 88, Surabaya, Jawa Timur 60115"
+  },
+  "contract": {
+    "start_date": "2026-04-01",
+    "end_date": "2026-09-30",
+    "value": 320000000,
+    "terms": "Pembayaran termin 30% di muka, 40% saat pengiriman, 30% setelah barang terjual.",
+    "status": "active"
+  },
+  "products": [
+    { "name": "Hellcat Boxy Cut Hoodie - Army", "qty": 350, "price": 185000 },
+    { "name": "Hellcat Boxy Cut Hoodie - Charcoal", "qty": 350, "price": 185000 },
+    { "name": "SN Promise Oversize T-shirt - Charcoal", "qty": 500, "price": 95000 },
+    { "name": "SHNS Croptop Edition - Army", "qty": 200, "price": 125000 }
+  ],
+  "signed_date": "2026-03-05"
+}

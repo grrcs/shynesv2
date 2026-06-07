@@ -1,0 +1,31 @@
+{
+  "contract_code": "DK06",
+  "supplier": {
+    "company_name": "CV. Rumah Konveksi Indonesia",
+    "contact_person": "Suparman",
+    "email": "suparman@rumahkonveksi.co.id",
+    "phone": "0838-9012-3456",
+    "address": "Jl. Rajawali No. 12, Bandung, Jawa Barat 40123"
+  },
+  "distributor": {
+    "company_name": "UD. Sandang Sejahtera",
+    "contact_person": "Lilis Suryani",
+    "email": "lilis@sandangsejahtera.co.id",
+    "phone": "0856-1234-5678",
+    "address": "Jl. Pasar Minggu No. 67, Jakarta Selatan, DKI Jakarta 12520"
+  },
+  "contract": {
+    "start_date": "2026-05-01",
+    "end_date": "2026-12-31",
+    "value": 450000000,
+    "terms": "Pembayaran dilakukan setiap tanggal 5 bulan berikutnya. Minimum order 200 pcs per SKU.",
+    "status": "active"
+  },
+  "products": [
+    { "name": "SN Promise Oversize T-shirt - Hitam", "qty": 800, "price": 95000 },
+    { "name": "SN Promise Oversize T-shirt - Putih", "qty": 800, "price": 95000 },
+    { "name": "Hellcat Boxy Cut Hoodie - Hitam", "qty": 400, "price": 185000 },
+    { "name": "SHNS Croptop Edition - Hitam", "qty": 400, "price": 125000 }
+  ],
+  "signed_date": "2026-04-10"
+}

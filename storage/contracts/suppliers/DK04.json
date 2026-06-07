@@ -1,0 +1,31 @@
+{
+  "contract_code": "DK04",
+  "supplier": {
+    "company_name": "PT. Tekstil Jaya Abadi",
+    "contact_person": "Dian Permata",
+    "email": "dian@tekstiljaya.co.id",
+    "phone": "0811-2222-3333",
+    "address": "Jl. Sumatra No. 78, Tangerang, Banten 15111"
+  },
+  "distributor": {
+    "company_name": "CV. Mode Nusantara",
+    "contact_person": "Fajar Ramadhan",
+    "email": "fajar@modenusantara.co.id",
+    "phone": "0857-8901-2345",
+    "address": "Jl. Merdeka No. 33, Yogyakarta, DI Yogyakarta 55121"
+  },
+  "contract": {
+    "start_date": "2026-01-15",
+    "end_date": "2026-07-15",
+    "value": 195000000,
+    "terms": "Kontrak jangka pendek untuk seasonal collection. Pembayaran lunas saat barang dikirim.",
+    "status": "active"
+  },
+  "products": [
+    { "name": "SHNS Croptop Edition - Pink", "qty": 250, "price": 125000 },
+    { "name": "SHNS Croptop Edition - Cream", "qty": 250, "price": 125000 },
+    { "name": "SN Promise Oversize T-shirt - Cream", "qty": 400, "price": 95000 },
+    { "name": "Hellcat Boxy Cut Hoodie - Cream", "qty": 200, "price": 185000 }
+  ],
+  "signed_date": "2025-12-28"
+}

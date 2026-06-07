@@ -14,6 +14,10 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             '/payment/wijayapay/callback',
         ]);
+
+        $middleware->alias([
+            'tenant' => \App\Http\Middleware\TenantIsolation::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (\Illuminate\Http\Exceptions\PostTooLargeException $e, $request) {

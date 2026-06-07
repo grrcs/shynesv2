@@ -1,0 +1,31 @@
+{
+  "contract_code": "DK02",
+  "supplier": {
+    "company_name": "PT. Garment Modern Indonesia",
+    "contact_person": "Rina Wijaya",
+    "email": "rina@garmentmodern.co.id",
+    "phone": "0813-4567-8901",
+    "address": "Jl. Gatot Subroto Kav. 58, Jakarta Selatan, DKI Jakarta 12950"
+  },
+  "distributor": {
+    "company_name": "UD. Pakaian Raya",
+    "contact_person": "Hendra Gunawan",
+    "email": "hendra@pakaianraya.co.id",
+    "phone": "0821-2345-6789",
+    "address": "Jl. Diponegoro No. 120, Surabaya, Jawa Timur 60241"
+  },
+  "contract": {
+    "start_date": "2026-02-01",
+    "end_date": "2026-11-30",
+    "value": 375000000,
+    "terms": "Pembayaran termin 50% di muka dan 50% setelah barang diterima. Garansi kualitas 100%.",
+    "status": "active"
+  },
+  "products": [
+    { "name": "SHNS Croptop Edition - Hitam", "qty": 400, "price": 125000 },
+    { "name": "SHNS Croptop Edition - Putih", "qty": 400, "price": 125000 },
+    { "name": "Hellcat Boxy Cut Hoodie - Navy", "qty": 300, "price": 185000 },
+    { "name": "SN Promise Oversize T-shirt - Navy", "qty": 500, "price": 95000 }
+  ],
+  "signed_date": "2026-01-20"
+}

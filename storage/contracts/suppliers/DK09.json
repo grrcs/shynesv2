@@ -1,0 +1,31 @@
+{
+  "contract_code": "DK09",
+  "supplier": {
+    "company_name": "PT. Pakaian Jadi Nusantara",
+    "contact_person": "Eko Prasetyo",
+    "email": "eko@pakaianjadi.co.id",
+    "phone": "0813-5678-9012",
+    "address": "Jl. Letjen S. Parman No. 72, Jakarta Barat, DKI Jakarta 11480"
+  },
+  "distributor": {
+    "company_name": "CV. Grosir Busana Murah",
+    "contact_person": "Mega Wulandari",
+    "email": "mega@grosirbusana.co.id",
+    "phone": "0858-9012-3456",
+    "address": "Jl. Tanjung Duren Raya No. 15, Jakarta Barat, DKI Jakarta 11470"
+  },
+  "contract": {
+    "start_date": "2026-03-15",
+    "end_date": "2026-09-15",
+    "value": 210000000,
+    "terms": "Kontrak untuk kanal grosir dengan diskon khusus 15% dari harga distributor. Pembayaran tunai saat pengambilan barang.",
+    "status": "active"
+  },
+  "products": [
+    { "name": "SN Promise Oversize T-shirt - Putih", "qty": 400, "price": 80750 },
+    { "name": "SN Promise Oversize T-shirt - Hitam", "qty": 400, "price": 80750 },
+    { "name": "SHNS Croptop Edition - Abu", "qty": 300, "price": 106250 },
+    { "name": "Hellcat Boxy Cut Hoodie - Hitam", "qty": 200, "price": 157250 }
+  ],
+  "signed_date": "2026-02-25"
+}

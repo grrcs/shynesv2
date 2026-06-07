@@ -157,6 +157,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/sellers/products/{sellerProduct}', [App\Http\Controllers\Admin\SellerManagementController::class, 'showProduct'])->name('admin.sellers.products.show');
     Route::post('/admin/sellers/products/{sellerProduct}/approve', [App\Http\Controllers\Admin\SellerManagementController::class, 'approveProduct'])->name('admin.sellers.products.approve');
     Route::post('/admin/sellers/products/{sellerProduct}/reject', [App\Http\Controllers\Admin\SellerManagementController::class, 'rejectProduct'])->name('admin.sellers.products.reject');
+
+    // Multi-Tenant Contract Management Routes
+    Route::middleware(['tenant'])->prefix('admin')->name('admin.')->group(function () {
+        Route::resource('contracts', App\Http\Controllers\Admin\ContractController::class)->except(['edit', 'update']);
+        Route::get('contracts/{contract}/download', [App\Http\Controllers\Admin\ContractController::class, 'download'])->name('contracts.download');
+    });
 });
 
 // Pakasir Payment Routes

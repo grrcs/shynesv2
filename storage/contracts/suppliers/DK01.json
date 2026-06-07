@@ -1,0 +1,31 @@
+{
+  "contract_code": "DK01",
+  "supplier": {
+    "company_name": "PT. Fashion Nusantara Sejahtera",
+    "contact_person": "Bambang Supriyadi",
+    "email": "bambang@fashionnusantara.co.id",
+    "phone": "0812-3456-7890",
+    "address": "Jl. MT Haryono No. 15, Jakarta Timur, DKI Jakarta 13630"
+  },
+  "distributor": {
+    "company_name": "CV. Distribusi Busana Kita",
+    "contact_person": "Dewi Sartika",
+    "email": "dewi@busanakita.co.id",
+    "phone": "0856-7890-1234",
+    "address": "Jl. Ahmad Yani No. 88, Bandung, Jawa Barat 40112"
+  },
+  "contract": {
+    "start_date": "2026-01-01",
+    "end_date": "2026-12-31",
+    "value": 500000000,
+    "terms": "Pembayaran dilakukan setiap akhir bulan dengan termin 30 hari. Pengiriman dilakukan maksimal 7 hari setelah pemesanan.",
+    "status": "active"
+  },
+  "products": [
+    { "name": "Hellcat Boxy Cut Hoodie - Hitam", "qty": 500, "price": 185000 },
+    { "name": "Hellcat Boxy Cut Hoodie - Putih", "qty": 500, "price": 185000 },
+    { "name": "SHNS Croptop Edition - Abu", "qty": 300, "price": 125000 },
+    { "name": "SN Promise Oversize T-shirt - Hitam", "qty": 700, "price": 95000 }
+  ],
+  "signed_date": "2025-12-15"
+}

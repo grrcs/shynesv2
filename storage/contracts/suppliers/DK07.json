@@ -1,0 +1,31 @@
+{
+  "contract_code": "DK07",
+  "supplier": {
+    "company_name": "PT. Kain Raya Utama",
+    "contact_person": "Herman Susanto",
+    "email": "herman@kainraya.co.id",
+    "phone": "0812-1111-2222",
+    "address": "Jl. Thamrin No. 99, Jakarta Pusat, DKI Jakarta 10230"
+  },
+  "distributor": {
+    "company_name": "CV. Fashion Distribusi Nusantara",
+    "contact_person": "Ratna Kusuma",
+    "email": "ratna@fashiondistribusi.co.id",
+    "phone": "0823-4567-8910",
+    "address": "Jl. Sisingamangaraja No. 25, Medan, Sumatera Utara 20112"
+  },
+  "contract": {
+    "start_date": "2026-02-15",
+    "end_date": "2026-08-15",
+    "value": 260000000,
+    "terms": "Kontrak khusus untuk ekspansi ke wilayah Sumatera. Pembayaran via transfer bank maksimal H+7 setelah barang diterima.",
+    "status": "active"
+  },
+  "products": [
+    { "name": "Hellcat Boxy Cut Hoodie - Putih", "qty": 300, "price": 185000 },
+    { "name": "SHNS Croptop Edition - Abu", "qty": 300, "price": 125000 },
+    { "name": "SN Promise Oversize T-shirt - Hitam", "qty": 500, "price": 95000 },
+    { "name": "SN Promise Oversize T-shirt - Abu", "qty": 500, "price": 95000 }
+  ],
+  "signed_date": "2026-01-30"
+}
