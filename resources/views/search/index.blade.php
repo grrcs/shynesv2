@@ -25,7 +25,7 @@
                     @foreach($products as $product)
                         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
                              <a href="{{ route('products.show', $product->id) }}" class="block p-4">
-                                <img src="{{ asset('storage/products/'.$product->image) }}" class="w-full h-48 object-cover rounded-md mb-4 bg-gray-100">
+                                <img src="{{ $product->image_url }}" class="w-full h-48 object-cover rounded-md mb-4 bg-gray-100">
                                 <h4 class="font-bold text-gray-900 mb-1 truncate">{{ $product->title }}</h4>
                                 <div class="text-blue-600 font-mono text-sm font-bold">Rp {{ number_format($product->price, 0, ',', '.') }}</div>
                              </a>

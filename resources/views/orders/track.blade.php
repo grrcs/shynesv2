@@ -145,7 +145,7 @@
             @foreach($order->items as $item)
                 <div class="flex items-center gap-4 pb-4 border-b border-thin dark:border-gray-800 last:border-0 last:pb-0">
                     <div class="w-16 h-20 bg-gray-50 dark:bg-[#151515] border border-thin dark:border-gray-800 overflow-hidden rounded">
-                        <img src="{{ asset('storage/products/' . $item->product->image) }}" 
+                        <img src="{{ $item->product->image_url }}" 
                              alt="{{ $item->product_name }}" 
                              class="w-full h-full object-cover grayscale">
                     </div>

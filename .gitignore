@@ -1,4 +1,8 @@
 *.log
+*.sql
+/*.webp
+*.py
+*.bat
 .DS_Store
 .env
 .env.backup
@@ -22,4 +26,3 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
-/.iflow

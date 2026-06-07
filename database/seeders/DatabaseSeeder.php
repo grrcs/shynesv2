@@ -15,23 +15,42 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        User::firstOrCreate(
+            ['email' => 'admin@gmail.com'],
+            [
+                'name' => 'Admin User',
+                'email' => 'admin@gmail.com',
+                'role' => 'admin',
+                'password' => bcrypt('password'),
+                'email_verified_at' => now(),
+            ]
+        );
 
-        User::factory()->create([
-            'name' => 'Admin User',
-            'email' => 'admin@gmail.com',
-            'role' => 'admin',
-            'password' => bcrypt('password'),
+        User::firstOrCreate(
+            ['email' => 'pembeli@gmail.com'],
+            [
+                'name' => 'Pembeli User',
+                'email' => 'pembeli@gmail.com',
+                'role' => 'pembeli',
+                'password' => bcrypt('password'),
+                'email_verified_at' => now(),
+            ]
+        );
+
+        $this->call([
+            CategorySeeder::class,
+            ProductSeeder::class,
+            ProductMediaSeeder::class,
+            ProductVariantSeeder::class,
+            BannerSeeder::class,
+            PostSeeder::class,
+            VideoSeeder::class,
+            ConfessionSeeder::class,
+            ReviewSeeder::class,
+            CouponSeeder::class,
+            PaymentOptionSeeder::class,
+            AddressSeeder::class,
+            LoyaltyPointSeeder::class,
         ]);
-
-        User::factory()->create([
-            'name' => 'Pembeli User',
-            'email' => 'pembeli@gmail.com',
-            'role' => 'pembeli',
-            'password' => bcrypt('password'),
-        ]);
-
-        // Seed payment options
-        $this->call(PaymentOptionSeeder::class);
     }
 }

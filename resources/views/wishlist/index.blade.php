@@ -30,7 +30,7 @@
                     </form>
 
                      <a href="{{ route('products.show', $item->product->id) }}" class="block p-4">
-                        <img src="{{ asset('storage/products/'.$item->product->image) }}" class="w-full h-48 object-cover rounded-md mb-4 bg-gray-100">
+                        <img src="{{ $item->product->image_url }}" class="w-full h-48 object-cover rounded-md mb-4 bg-gray-100">
                         <h4 class="font-bold text-gray-900 mb-1 truncate">{{ $item->product->title }}</h4>
                         <div class="text-blue-600 font-mono text-sm font-bold">Rp {{ number_format($item->product->price, 0, ',', '.') }}</div>
                      </a>

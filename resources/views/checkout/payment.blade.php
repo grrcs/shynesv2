@@ -24,7 +24,7 @@
                     @endphp
                     <div class="flex gap-4">
                         <div class="w-16 h-20 bg-gray-50 dark:bg-[#151515] border border-thin dark:border-gray-800 shrink-0 overflow-hidden transition-colors">
-                            <img src="{{ asset('storage/products/'.$item->product->image) }}" alt="{{ $item->product->title }}" class="w-full h-full object-cover grayscale">
+                            <img src="{{ $item->product->image_url }}" alt="{{ $item->product->title }}" class="w-full h-full object-cover grayscale">
                         </div>
                         <div class="flex flex-col justify-between flex-grow py-1">
                             <div class="flex justify-between">

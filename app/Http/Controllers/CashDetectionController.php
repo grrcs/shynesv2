@@ -1,0 +1,379 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+
+class CashDetectionController extends Controller
+{
+    public function analyze(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|string', // base64 image data
+        ]);
+
+        $imageData = $request->input('image');
+
+        // Remove data URL prefix if present
+        if (str_contains($imageData, ',')) {
+            $imageData = explode(',', $imageData)[1];
+        }
+
+        // Validate base64 size (max 2MB after decode to prevent timeout)
+        $decodedSize = strlen(base64_decode($imageData));
+        if ($decodedSize > 2 * 1024 * 1024) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gambar terlalu besar. Maksimal 2MB. Silakan foto ulang dengan resolusi lebih rendah.',
+            ], 400);
+        }
+
+        $apiKey = config('services.openrouter.api_key');
+        
+        // Free vision models (Mei 2026) - ordered by reliability
+        $models = [
+            'openrouter/free',                      // Auto-router: selects best free model automatically
+            'nvidia/nemotron-3-nano-omni:free',     // 30B multimodal (text, image, video, audio)
+            'google/gemma-4-31b-it:free',           // 31B multimodal with 256K context
+            'nvidia/nemotron-nano-12b-v2-vl:free',  // 12B vision + reasoning
+            config('services.openrouter.model', 'openrouter/free'), // User config as fallback
+        ];
+        $models = array_unique($models);
+
+        if (!$apiKey) {
+            return response()->json([
+                'success' => false,
+                'message' => 'OpenRouter API key not configured',
+            ], 500);
+        }
+
+        $prompt = <<<EOT
+Kamu adalah sistem deteksi keaslian uang kertas Rupiah Indonesia.
+
+ATURAN PENTING:
+- Jika gambar BUKAN uang kertas (misalnya wajah orang, benda lain, layar, kertas kosong, dll), LANGSUNG beri confidence 0 dan verdict "BUKAN UANG".
+- Jika gambar tidak jelas, blur, atau terlalu gelap, beri verdict "TIDAK JELAS" dengan confidence rendah.
+- Analisis berdasarkan apa yang TERLIHAT di gambar.
+
+KONTEKS PENTING:
+- Foto diambil dari kamera HP/webcam biasa, BUKAN scanner profesional.
+- Fitur seperti microprint dan color-shifting ink TIDAK MUNGKIN terlihat dari foto biasa. Jangan gunakan ketidakmampuan melihat fitur ini sebagai indikator uang palsu.
+- Fokus pada fitur yang BISA dilihat dari foto biasa: warna, desain, ukuran proporsional, watermark (jika terlihat), dan kualitas cetakan secara umum.
+
+PANDUAN IDENTIFIKASI NOMINAL RUPIAH (berdasarkan ciri visual yang terlihat dari foto):
+
+Rp 100.000 (Seratus Ribu):
+- Warna dominan: MERAH/MERAH MUDA (pink-red)
+- Tokoh: Soekarno-Hatta (dua tokoh)
+- Ciri khas: Warna merah mencolok, ada angka 100000 besar di kanan, desain dengan nuansa merah-pink
+
+Rp 75.000 (Tujuh Puluh Lima Ribu) - EDISI KHUSUS HUT RI:
+- Warna dominan: HIJAU TOSCA/TURQUOISE
+- Tokoh: Soekarno (satu tokoh)
+- Ciri khas: Edisi khusus, warna hijau tosca unik, jarang beredar
+
+Rp 50.000 (Lima Puluh Ribu):
+- Warna dominan: BIRU (blue)
+- Tokoh: Ir. H. Djuanda Kartawidjaja
+- Ciri khas: Warna biru cerah, ada angka 50000 di kanan, desain dengan nuansa biru
+
+Rp 20.000 (Dua Puluh Ribu):
+- Warna dominan: HIJAU (green)
+- Tokoh: Dr. G.S.S.J. Ratulangi
+- Ciri khas: Warna hijau, ada angka 20000 di kanan, desain dengan nuansa hijau
+
+Rp 10.000 (Sepuluh Ribu):
+- Warna dominan: UNGU/PURPLE
+- Tokoh: Frans Kaisiepo
+- Ciri khas: Warna ungu/violet, ada angka 10000 di kanan, desain dengan nuansa ungu
+
+Rp 5.000 (Lima Ribu):
+- Warna dominan: COKLAT/BROWN
+- Tokoh: Dr. K.H. Idham Chalid
+- Ciri khas: Warna coklat kekuningan, ukuran lebih kecil
+
+Rp 2.000 (Dua Ribu):
+- Warna dominan: ABU-ABU/GREY
+- Tokoh: Mohammad Hoesni Thamrin
+- Ciri khas: Warna abu-abu, ukuran kecil
+
+Rp 1.000 (Seribu):
+- Warna dominan: HIJAU MUDA/LIGHT GREEN
+- Tokoh: Tjut Meutia
+- Ciri khas: Warna hijau muda, ukuran paling kecil
+
+LANGKAH ANALISIS:
+1. PERTAMA: Tentukan apakah objek di gambar adalah uang kertas Rupiah Indonesia. Jika BUKAN, langsung return confidence 0.
+2. IDENTIFIKASI NOMINAL: Lihat WARNA DOMINAN uang kertas, lalu cocokkan dengan panduan di atas. Ini adalah langkah WAJIB.
+3. Jika YA uang kertas, periksa fitur yang BISA dinilai dari foto:
+   - DESAIN & WARNA: Apakah warna sesuai denominasi? Apakah desain (gambar pahlawan, ornamen) sesuai dengan uang resmi BI?
+   - WATERMARK: Jika terlihat tanda air di sisi kiri, itu indikator positif. Jika tidak terlihat karena pencahayaan/sudut foto, jangan anggap negatif.
+   - KUALITAS CETAKAN: Apakah cetakan terlihat tajam dan detail? Atau terlihat buram/blur seperti hasil fotokopi?
+   - PROPORSI & UKURAN: Apakah proporsi elemen desain terlihat benar?
+   - BENANG PENGAMAN: Jika terlihat garis metalik, itu indikator positif.
+4. PENILAIAN REALISTIS:
+   - Uang asli yang difoto dengan kamera biasa seharusnya mendapat confidence 60-85 (karena tidak semua fitur bisa diverifikasi dari foto).
+   - Uang palsu biasanya terlihat dari: warna yang salah/pudar, cetakan blur/tidak tajam, desain yang tidak proporsional, atau terlihat seperti hasil print/fotokopi.
+   - Jika uang terlihat normal tanpa tanda-tanda pemalsuan yang jelas, anggap ASLI.
+
+Berikan response dalam format JSON SAJA (tanpa markdown, tanpa backtick, tanpa ```json):
+{
+    "confidence": <0-100>,
+    "is_authentic": <true/false>,
+    "verdict": "<ASLI/PALSU/BUKAN UANG/TIDAK JELAS>",
+    "is_banknote": <true/false apakah objek ini uang kertas>,
+    "denomination": "<nominal uang dalam angka saja, misal: 100000, 50000, 20000, 10000, 5000, 2000, 1000, atau 75000 untuk edisi khusus>",
+    "features": {
+        "design_color": {"score": <0-100>, "note": "<apakah desain dan warna sesuai dengan nominal yang terdeteksi>"},
+        "print_quality": {"score": <0-100>, "note": "<kualitas cetakan>"},
+        "watermark": {"score": <0-100>, "note": "<apa yang terlihat, atau 'tidak terlihat dari foto ini'>"},
+        "security_thread": {"score": <0-100>, "note": "<apa yang terlihat>"},
+        "proportion": {"score": <0-100>, "note": "<proporsi elemen desain>"}
+    },
+    "summary": "<ringkasan 1-2 kalimat, WAJIB sebutkan nominal yang terdeteksi>"
+}
+
+PENTING: Response HARUS dimulai dengan { dan diakhiri dengan }. Jangan tambahkan teks apapun sebelum atau sesudah JSON.
+EOT;
+
+        try {
+            $response = null;
+            $responseData = null;
+            $lastError = null;
+
+            foreach ($models as $model) {
+                try {
+                    $response = Http::withHeaders([
+                        'Authorization' => 'Bearer ' . $apiKey,
+                        'Content-Type' => 'application/json',
+                        'HTTP-Referer' => config('app.url'),
+                        'X-Title' => config('app.name', 'Shyness POS'),
+                    ])->timeout(60)->post('https://openrouter.ai/api/v1/chat/completions', [
+                        'model' => $model,
+                        'messages' => [
+                            [
+                                'role' => 'user',
+                                'content' => [
+                                    [
+                                        'type' => 'text',
+                                        'text' => $prompt,
+                                    ],
+                                    [
+                                        'type' => 'image_url',
+                                        'image_url' => [
+                                            'url' => 'data:image/jpeg;base64,' . $imageData,
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                        'max_tokens' => 1024,
+                        'temperature' => 0.1,
+                    ]);
+
+                    $responseData = $response->json();
+
+                    if ($response->successful() && isset($responseData['choices'][0])) {
+                        break; // Success, stop trying
+                    }
+
+                    $lastError = $responseData['error']['message'] ?? 'Unknown error';
+                    Log::warning("OpenRouter model {$model} failed: {$lastError}");
+                    $response = null; // Reset for next attempt
+
+                } catch (\Exception $e) {
+                    $lastError = $e->getMessage();
+                    Log::warning("OpenRouter model {$model} exception: {$lastError}");
+                    $response = null;
+                }
+            }
+
+            if (!$response || !$response->successful()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Semua model gagal: ' . ($lastError ?? 'Unknown error'),
+                ], 500);
+            }
+
+            $content = $responseData['choices'][0]['message']['content'] ?? '';
+            
+            // Handle empty response
+            if (empty(trim($content))) {
+                Log::warning("OpenRouter returned empty content");
+                return response()->json([
+                    'success' => true,
+                    'data' => [
+                        'confidence' => 0,
+                        'is_authentic' => false,
+                        'verdict' => 'TIDAK JELAS',
+                        'is_banknote' => false,
+                        'denomination' => '0',
+                        'features' => [
+                            'design_color' => ['score' => 0, 'note' => 'Tidak dapat dianalisis'],
+                            'print_quality' => ['score' => 0, 'note' => 'Tidak dapat dianalisis'],
+                            'watermark' => ['score' => 0, 'note' => 'Tidak dapat dianalisis'],
+                            'security_thread' => ['score' => 0, 'note' => 'Tidak dapat dianalisis'],
+                            'proportion' => ['score' => 0, 'note' => 'Tidak dapat dianalisis']
+                        ],
+                        'summary' => 'AI tidak dapat menganalisis gambar. Coba foto lebih jelas atau gunakan pencahayaan lebih baik.',
+                    ]
+                ]);
+            }
+            
+            // Log raw response for debugging
+            Log::info('OpenRouter Raw Response', [
+                'model' => $responseData['model'] ?? 'unknown',
+                'content_length' => strlen($content),
+                'content_preview' => substr($content, 0, 500),
+            ]);
+
+            // Try to parse JSON from response
+            $result = $this->parseAIResponse($content);
+
+            if ($result) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $result,
+                ]);
+            }
+
+            // If parsing failed, return fallback
+            Log::error('Failed to parse AI response', [
+                'raw_content' => $content,
+                'content_length' => strlen($content)
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'confidence' => 0,
+                    'is_authentic' => false,
+                    'verdict' => 'TIDAK JELAS',
+                    'is_banknote' => false,
+                    'denomination' => '0',
+                    'features' => [
+                        'design_color' => ['score' => 0, 'note' => 'Tidak dapat dianalisis'],
+                        'print_quality' => ['score' => 0, 'note' => 'Tidak dapat dianalisis'],
+                        'watermark' => ['score' => 0, 'note' => 'Tidak dapat dianalisis'],
+                        'security_thread' => ['score' => 0, 'note' => 'Tidak dapat dianalisis'],
+                        'proportion' => ['score' => 0, 'note' => 'Tidak dapat dianalisis']
+                    ],
+                    'summary' => 'AI tidak dapat menganalisis gambar. Coba foto lebih jelas atau gunakan pencahayaan lebih baik.',
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Cash Detection Error', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menganalisis: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    private function parseAIResponse(string $content): ?array
+    {
+        // Remove any leading/trailing whitespace
+        $content = trim($content);
+        
+        // Fix common JSON errors from AI
+        $content = $this->fixCommonJSONErrors($content);
+        
+        // Try direct JSON parse first
+        $decoded = json_decode($content, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded) && isset($decoded['confidence'])) {
+            return $this->normalizeResponse($decoded);
+        }
+
+        // Try to extract JSON from markdown code block (```json ... ```)
+        if (preg_match('/```(?:json)?\s*(\{.*?\})\s*```/s', $content, $matches)) {
+            $jsonStr = $this->fixCommonJSONErrors($matches[1]);
+            $decoded = json_decode($jsonStr, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded) && isset($decoded['confidence'])) {
+                return $this->normalizeResponse($decoded);
+            }
+        }
+
+        // Try to find nested JSON with proper bracket matching
+        $start = strpos($content, '{');
+        if ($start !== false) {
+            $bracketCount = 0;
+            $inString = false;
+            $escape = false;
+            
+            for ($i = $start; $i < strlen($content); $i++) {
+                $char = $content[$i];
+                
+                if ($escape) {
+                    $escape = false;
+                    continue;
+                }
+                
+                if ($char === '\\') {
+                    $escape = true;
+                    continue;
+                }
+                
+                if ($char === '"') {
+                    $inString = !$inString;
+                    continue;
+                }
+                
+                if (!$inString) {
+                    if ($char === '{') {
+                        $bracketCount++;
+                    } elseif ($char === '}') {
+                        $bracketCount--;
+                        if ($bracketCount === 0) {
+                            // Found complete JSON object
+                            $jsonStr = substr($content, $start, $i - $start + 1);
+                            $jsonStr = $this->fixCommonJSONErrors($jsonStr);
+                            $decoded = json_decode($jsonStr, true);
+                            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded) && isset($decoded['confidence'])) {
+                                return $this->normalizeResponse($decoded);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private function fixCommonJSONErrors(string $json): string
+    {
+        // Fix unclosed string at the end (common AI error)
+        // Pattern: "summary": "text...{  -> "summary": "text..."}
+        $json = preg_replace('/"summary"\s*:\s*"([^"]*)\{/', '"summary": "$1"}', $json);
+        
+        // Fix duplicate JSON objects (take first complete one)
+        if (preg_match('/^(\{.*?\})\s*\{/s', $json, $matches)) {
+            $json = $matches[1];
+        }
+        
+        // Remove any trailing incomplete JSON
+        $lastBrace = strrpos($json, '}');
+        if ($lastBrace !== false) {
+            $json = substr($json, 0, $lastBrace + 1);
+        }
+        
+        return $json;
+    }
+
+    private function normalizeResponse(array $data): array
+    {
+        // Ensure all required fields exist with defaults
+        return [
+            'confidence' => $data['confidence'] ?? 0,
+            'is_authentic' => $data['is_authentic'] ?? false,
+            'verdict' => $data['verdict'] ?? 'TIDAK JELAS',
+            'is_banknote' => $data['is_banknote'] ?? false,
+            'denomination' => $data['denomination'] ?? '0',
+            'features' => $data['features'] ?? [],
+            'summary' => $data['summary'] ?? 'Tidak dapat menganalisis gambar'
+        ];
+    }
+}

@@ -38,7 +38,7 @@
                         <div class="py-8 border-b border-thin dark:border-gray-800 flex gap-6 relative group transition-colors">
                             <!-- Product Image -->
                             <a href="{{ route('products.show', $item->product->id) }}" class="w-24 h-32 bg-gray-50 dark:bg-[#151515] shrink-0 border border-thin dark:border-gray-800 overflow-hidden transition-colors">
-                                <img src="{{ asset('storage/products/'.$item->product->image) }}" alt="{{ $item->product->title }}" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500">
+                                <img src="{{ $item->product->image_url }}" alt="{{ $item->product->title }}" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500">
                             </a>
 
                             <!-- Product Details -->

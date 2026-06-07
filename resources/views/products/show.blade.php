@@ -47,7 +47,7 @@
                     <!-- Main Image Slide -->
                     <div class="swiper-slide h-full w-full flex items-center justify-center">
                         <div class="zoom-container w-full h-full flex items-center justify-center">
-                            <img src="{{ asset('storage/products/'.$product->image) }}" onerror="this.onerror=null;this.src='{{ asset('images/campaign/shyness_vol_1.png') }}';" 
+                            <img src="{{ $product->image_url }}" onerror="this.onerror=null;this.src='{{ asset('images/campaign/shyness_vol_1.png') }}';" 
                                  alt="{{ $product->title }}" 
                                  class="zoom-image w-full h-full object-cover select-image">
                         </div>
@@ -59,7 +59,7 @@
                             <div class="swiper-slide h-full w-full flex items-center justify-center bg-gray-100 dark:bg-[#151515]">
                                 <div class="zoom-container w-full h-full flex items-center justify-center">
                                     @if($media->file_type == 'image')
-                                        <img src="{{ asset('storage/products/'.$media->file_path) }}" onerror="this.onerror=null;this.src='{{ asset('images/campaign/shyness_vol_1.png') }}';" 
+                                        <img src="{{ asset('images/products/'.$media->file_path) }}" onerror="this.onerror=null;this.src='{{ asset('images/campaign/shyness_vol_1.png') }}';" 
                                              alt="{{ $product->title }}" 
                                              class="zoom-image w-full h-full object-cover select-image">
                                     @else
@@ -84,7 +84,7 @@
                 <div class="swiper-wrapper">
                     <!-- Main Image Thumbnail -->
                     <div class="swiper-slide thumbnail-slide h-full w-full flex items-center justify-center bg-gray-100 dark:bg-[#151515]">
-                        <img src="{{ asset('storage/products/'.$product->image) }}" onerror="this.onerror=null;this.src='{{ asset('images/campaign/shyness_vol_1.png') }}';" 
+                        <img src="{{ $product->image_url }}" onerror="this.onerror=null;this.src='{{ asset('images/campaign/shyness_vol_1.png') }}';" 
                              alt="{{ $product->title }}" 
                              class="w-full h-full object-cover">
                     </div>
@@ -94,7 +94,7 @@
                         @foreach($product->media as $media)
                             <div class="swiper-slide thumbnail-slide h-full w-full flex items-center justify-center bg-gray-100 dark:bg-[#151515]">
                                 @if($media->file_type == 'image')
-                                    <img src="{{ asset('storage/products/'.$media->file_path) }}" onerror="this.onerror=null;this.src='{{ asset('images/campaign/shyness_vol_1.png') }}';" 
+                                    <img src="{{ asset('images/products/'.$media->file_path) }}" onerror="this.onerror=null;this.src='{{ asset('images/campaign/shyness_vol_1.png') }}';" 
                                          alt="{{ $product->title }}" 
                                          class="w-full h-full object-cover">
                                 @else
@@ -222,12 +222,11 @@
                             <div class="flex flex-1 gap-4">
                                 <div class="w-24 border border-thin dark:border-gray-700 relative transition-colors">
                                     <label class="sr-only">Quantity</label>
-                                    <input type="number" id="qty-{{ $product->id }}" value="1" min="1" max="{{ $product->stock }}" 
+                                    <input type="number" id="qty-{{ $product->id }}" value="1" min="1" max="{{ $product->stock }}"
                                            class="w-full h-full p-4 text-center text-sm focus:outline-none focus:ring-0 bg-transparent text-primary dark:text-white transition-colors" oninput="document.getElementById('form-qty-{{ $product->id }}').value = this.value">
                                 </div>
-                                
-                                <form action="{{ route('cart.store') }}" method="POST" class="flex-1">
-                                    @csrf
+
+                                <form action="{{ route('orders.directBuyPage') }}" method="GET" class="flex-1">
                                     <input type="hidden" name="product_id" value="{{ $product->id }}">
                                     <input type="hidden" name="quantity" value="1" id="form-qty-{{ $product->id }}">
                                     <button type="submit" class="w-full h-full px-8 py-4 text-xs tracking-widest uppercase font-medium text-white bg-primary dark:bg-white dark:text-primary hover:bg-black dark:hover:bg-gray-200 transition-all border border-primary dark:border-white">
@@ -235,11 +234,11 @@
                                     </button>
                                 </form>
                             </div>
-                            
+
                             <button type="button" onclick="addToCart({{ $product->id }}, document.getElementById('qty-{{ $product->id }}').value, this)" class="w-14 h-full min-h-[56px] flex-shrink-0 flex items-center justify-center border border-thin dark:border-gray-700 text-secondary dark:text-gray-400 hover:text-primary dark:hover:text-white hover:border-black dark:hover:border-white transition-colors bg-white dark:bg-primary" title="Tambah ke Keranjang">
                                 <i class="fa-solid fa-cart-plus text-lg"></i>
                             </button>
-                            
+
                             <button type="button" onclick="addToWishlist({{ $product->id }}, this)" class="w-14 h-full min-h-[56px] flex-shrink-0 flex items-center justify-center border border-thin dark:border-gray-700 text-secondary dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:border-red-200 dark:hover:border-red-900 transition-colors bg-white dark:bg-primary" title="Favoritkan">
                                 @php
                                     $inWishlist = false;

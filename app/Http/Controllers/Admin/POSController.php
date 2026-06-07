@@ -163,6 +163,7 @@ class POSController extends Controller
             'total_price' => $subtotal,
             'status' => $orderStatus,
             'invoice_number' => $invoiceNumber,
+            'payment_channel' => $paymentCode,
             'shipping_recipient_name' => $customerName,
             'shipping_phone_number' => $customerPhone,
             'shipping_address' => $customerAddress,
@@ -189,17 +190,19 @@ class POSController extends Controller
             'changed_at' => now(),
         ]);
 
-        // For digital payments (QRIS, VA), create payment via CashIdService
+        // For digital payments (QRIS, VA, etc.), create payment via WijayaPayService
         $paymentUrl = null;
         $paymentToken = null;
+        $paymentData = null;
         
-        if (in_array($paymentCode, ['QRIS', 'VA'])) {
-            $cashIdService = app(\App\Services\CashIdService::class);
-            $paymentResult = $cashIdService->createPayment($order, $paymentCode);
+        if (!in_array($paymentCode, ['cash', 'cod'])) {
+            $wijayaPayService = app(\App\Services\WijayaPayService::class);
+            $paymentResult = $wijayaPayService->createPayment($order, $paymentCode);
             
             if ($paymentResult['success']) {
                 $paymentUrl = $paymentResult['payment_url'];
                 $paymentToken = $paymentResult['payment_token'];
+                $paymentData = $paymentResult['data'] ?? null;
             }
         }
 
@@ -213,6 +216,7 @@ class POSController extends Controller
             'payment_url' => $paymentUrl,
             'payment_token' => $paymentToken,
             'payment_type' => $paymentCode,
+            'payment_data' => $paymentData,
         ]);
 
         }); // end DB::transaction
@@ -350,13 +354,13 @@ class POSController extends Controller
             ]);
         }
 
-        // For digital payments (QRIS, VA), check via CashIdService
+        // For digital payments (QRIS, VA), check via WijayaPayService
         if ($order->payment_token) {
             try {
-                $cashIdService = app(\App\Services\CashIdService::class);
-                $statusResult = $cashIdService->checkPaymentStatus($order->invoice_number);
+                $wijayaPayService = app(\App\Services\WijayaPayService::class);
+                $statusResult = $wijayaPayService->checkPaymentStatus($order->invoice_number);
                 
-                if ($statusResult['success'] && $statusResult['status'] === 'paid') {
+                if ($statusResult['success'] && $statusResult['status'] === 'SUCCESS') {
                     // Update order status if paid
                     if ($order->status !== 'paid' && $order->status !== 'completed') {
                         $order->update(['status' => 'paid']);

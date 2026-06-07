@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\Product;
 use App\Services\CheckoutService;
+use App\Services\WijayaPayService;
 use Illuminate\Http\Request;
 use Exception;
 
@@ -44,7 +46,7 @@ class OrderController extends Controller
         return view('checkout.payment-options', compact('cartItems', 'paymentOptions', 'addresses'));
     }
 
-    public function store(Request $request, CheckoutService $checkoutService)
+    public function store(Request $request, CheckoutService $checkoutService, WijayaPayService $wijayaPayService)
     {
         $cartItems = auth()->user()->cartItems()->with('product')->get();
         
@@ -67,6 +69,23 @@ class OrderController extends Controller
             // Send notification to user
             $order->user->notify(new \App\Notifications\OrderCreatedNotification($order));
             
+            // Auto-trigger Wijaya Pay if payment option is a gateway channel
+            $nonGatewayCodes = ['cash', 'cod', 'bank_transfer', 'credit_card', 'ewallet'];
+            $paymentCode = $order->paymentOption->code ?? null;
+            
+            if ($paymentCode && !in_array($paymentCode, $nonGatewayCodes)) {
+                $paymentResult = $wijayaPayService->createPayment($order);
+                
+                if ($paymentResult['success']) {
+                    return redirect()->route('payment.wijayapay.waiting', $order->id)
+                        ->with('success', 'Pesanan berhasil dibuat! Silakan selesaikan pembayaran.');
+                }
+                
+                // Payment creation failed but order exists - redirect with warning
+                return redirect()->route('orders.show', $order->id)
+                    ->with('error', 'Pesanan dibuat, tapi gagal membuat pembayaran: ' . ($paymentResult['message'] ?? 'Unknown error'));
+            }
+            
             return redirect()->route('orders.my')->with('success', 'Pesanan berhasil dibuat! Silakan tunggu konfirmasi admin.');
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());
@@ -88,12 +107,12 @@ class OrderController extends Controller
     public function track($id)
     {
         $order = Order::with(['statusHistory', 'shippingDetail', 'items.product'])
-            ->where('id', $id)
-            ->where(function($query) {
-                $query->where('user_id', auth()->id())
-                      ->orWhere('users.role', 'admin');
-            })
-            ->firstOrFail();
+            ->findOrFail($id);
+
+        // Cek akses: Admin atau Pemilik Order
+        if (auth()->user()->role !== 'admin' && auth()->id() !== $order->user_id) {
+            abort(403, 'Unauthorized action.');
+        }
 
         return view('orders.track', compact('order'));
     }
@@ -230,7 +249,7 @@ class OrderController extends Controller
         ]);
 
         $coupon = \App\Models\Coupon::where('code', $request->coupon_code)->first();
-        
+
         if (!$coupon->isValid()) {
             return response()->json(['error' => 'Kupon tidak valid atau telah kedaluwarsa'], 422);
         }
@@ -258,5 +277,80 @@ class OrderController extends Controller
                 'formatted_discount' => 'Rp ' . number_format($discountAmount, 0, ',', '.'),
             ],
         ]);
+    }
+
+    public function directBuyPage(Request $request)
+    {
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|integer|min:1',
+        ]);
+
+        $product = Product::with('category')->findOrFail($request->product_id);
+
+        if ($product->stock < $request->quantity) {
+            return redirect()->back()->with('error', 'Stok tidak mencukupi!');
+        }
+
+        $addresses = auth()->user()->addresses()->orderByDesc('is_primary')->latest()->get();
+        $paymentOptions = \App\Models\PaymentOption::where('is_active', true)->orderBy('name')->get();
+
+        $priceToUse = ($product->is_discount_active && $product->discount_price) ? $product->discount_price : $product->price;
+        $subtotal = $priceToUse * $request->quantity;
+
+        return view('checkout.direct-buy', compact('product', 'addresses', 'paymentOptions', 'subtotal', 'priceToUse'));
+    }
+
+    public function storeDirectBuy(Request $request, CheckoutService $checkoutService, WijayaPayService $wijayaPayService)
+    {
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|integer|min:1',
+            'payment_option_id' => 'required|exists:payment_options,id',
+            'address_id' => 'required|exists:addresses,id',
+            'coupon_code' => 'nullable|string|exists:coupons,code',
+        ]);
+
+        $product = Product::findOrFail($request->product_id);
+
+        if ($product->stock < $request->quantity) {
+            return back()->with('error', 'Stok tidak mencukupi!');
+        }
+
+        try {
+            $priceToUse = ($product->is_discount_active && $product->discount_price) ? $product->discount_price : $product->price;
+
+            $order = $checkoutService->processDirectBuy(
+                $product,
+                $request->quantity,
+                $priceToUse,
+                auth()->id(),
+                $validated['payment_option_id'],
+                $validated['address_id'],
+                $validated['coupon_code'] ?? null
+            );
+
+            $order->user->notify(new \App\Notifications\OrderCreatedNotification($order));
+
+            // Auto-trigger Wijaya Pay if payment option is a gateway channel
+            $nonGatewayCodes = ['cash', 'cod', 'bank_transfer', 'credit_card', 'ewallet'];
+            $paymentCode = $order->paymentOption->code ?? null;
+
+            if ($paymentCode && !in_array($paymentCode, $nonGatewayCodes)) {
+                $paymentResult = $wijayaPayService->createPayment($order);
+
+                if ($paymentResult['success']) {
+                    return redirect()->route('payment.wijayapay.waiting', $order->id)
+                        ->with('success', 'Pesanan berhasil dibuat! Silakan selesaikan pembayaran.');
+                }
+
+                return redirect()->route('orders.show', $order->id)
+                    ->with('error', 'Pesanan dibuat, tapi gagal membuat pembayaran: ' . ($paymentResult['message'] ?? 'Unknown error'));
+            }
+
+            return redirect()->route('orders.show', $order->id)->with('success', 'Pesanan berhasil dibuat! Silakan tunggu konfirmasi admin.');
+        } catch (Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 }

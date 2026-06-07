@@ -32,6 +32,7 @@ class PaymentOptionController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'code' => 'required|string|max:50',
             'description' => 'nullable|string',
             'tax_percentage' => 'required|numeric|min:0|max:100',
             'is_active' => 'boolean',
@@ -68,6 +69,7 @@ class PaymentOptionController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'code' => 'required|string|max:50',
             'description' => 'nullable|string',
             'tax_percentage' => 'required|numeric|min:0|max:100',
             'is_active' => 'boolean',

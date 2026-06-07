@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'SHYNESS | Premium UI')</title>
     
     <!-- Google Fonts -->
@@ -159,9 +160,10 @@
                     @auth
                         @if(auth()->user()->isAdmin())
                             <a href="{{ route('admin.dashboard') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('admin.dashboard') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">Dashboard</a>
+                            <a href="{{ route('admin.pos') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('admin.pos') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">POS</a>
                             <a href="{{ route('posts.index') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('posts.*') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">Postingan</a>
                             <a href="{{ route('categories.index') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('categories.*') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">Kategori</a>
-                            <a href="{{ route('videos.index') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('videos.*') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">Video</a>
+                            <a href="{{ route('admin.sellers.contracts') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('admin.sellers.*') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">Penjual</a>
                             <a href="{{ route('banners.index') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('banners.*') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">Banner</a>
                         @endif
                         
@@ -223,6 +225,11 @@
                                     <a href="{{ route('cart.index') }}" class="block px-4 py-2 text-xs tracking-widest uppercase text-secondary hover:text-primary dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                                         Keranjang
                                     </a>
+                                    @if(!auth()->user()->isAdmin())
+                                    <a href="{{ route('seller.index') }}" class="block px-4 py-2 text-xs tracking-widest uppercase text-secondary hover:text-primary dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                        {{ auth()->user()->isPenjual() ? 'Dashboard Penjual' : 'Jadi Penjual' }}
+                                    </a>
+                                    @endif
                                 </div>
                                 <div class="py-1 border-t border-thin">
                                     <form action="{{ route('logout') }}" method="POST">
@@ -252,9 +259,10 @@
                 @auth
                     @if(auth()->user()->isAdmin())
                         <a href="{{ route('admin.dashboard') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('admin.dashboard') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Dashboard</a>
+                        <a href="{{ route('admin.pos') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('admin.pos') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">POS</a>
                         <a href="{{ route('posts.index') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('posts.*') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Postingan</a>
                         <a href="{{ route('categories.index') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('categories.*') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Kategori</a>
-                        <a href="{{ route('videos.index') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('videos.*') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Video</a>
+                        <a href="{{ route('admin.sellers.contracts') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('admin.sellers.*') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Penjual</a>
                         <a href="{{ route('banners.index') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('banners.*') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Banner</a>
                     @endif
                     <a href="{{ route('products.index') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('products.*') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Produk</a>

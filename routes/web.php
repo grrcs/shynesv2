@@ -137,11 +137,32 @@ Route::middleware(['auth'])->group(function () {
 
     // Confessions
     Route::resource('/confessions', App\Http\Controllers\ConfessionController::class)->only(['index', 'store']);
+
+    // AI Cash Detection
+    Route::post('/admin/pos/cash-detection', [App\Http\Controllers\CashDetectionController::class, 'analyze'])->name('admin.pos.cashDetection');
+
+    // Seller Routes (for users requesting to become sellers)
+    Route::get('/seller', [App\Http\Controllers\SellerController::class, 'index'])->name('seller.index');
+    Route::get('/seller/request', [App\Http\Controllers\SellerController::class, 'requestForm'])->name('seller.request');
+    Route::post('/seller/request', [App\Http\Controllers\SellerController::class, 'submitRequest'])->name('seller.submitRequest');
+    Route::get('/seller/products/create', [App\Http\Controllers\SellerController::class, 'createProduct'])->name('seller.products.create');
+    Route::post('/seller/products', [App\Http\Controllers\SellerController::class, 'storeProduct'])->name('seller.products.store');
+
+    // Admin Seller Management Routes
+    Route::get('/admin/sellers/contracts', [App\Http\Controllers\Admin\SellerManagementController::class, 'contracts'])->name('admin.sellers.contracts');
+    Route::get('/admin/sellers/contracts/{contract}', [App\Http\Controllers\Admin\SellerManagementController::class, 'showContract'])->name('admin.sellers.contracts.show');
+    Route::post('/admin/sellers/contracts/{contract}/approve', [App\Http\Controllers\Admin\SellerManagementController::class, 'approveContract'])->name('admin.sellers.contracts.approve');
+    Route::post('/admin/sellers/contracts/{contract}/reject', [App\Http\Controllers\Admin\SellerManagementController::class, 'rejectContract'])->name('admin.sellers.contracts.reject');
+    Route::get('/admin/sellers/products', [App\Http\Controllers\Admin\SellerManagementController::class, 'products'])->name('admin.sellers.products');
+    Route::get('/admin/sellers/products/{sellerProduct}', [App\Http\Controllers\Admin\SellerManagementController::class, 'showProduct'])->name('admin.sellers.products.show');
+    Route::post('/admin/sellers/products/{sellerProduct}/approve', [App\Http\Controllers\Admin\SellerManagementController::class, 'approveProduct'])->name('admin.sellers.products.approve');
+    Route::post('/admin/sellers/products/{sellerProduct}/reject', [App\Http\Controllers\Admin\SellerManagementController::class, 'rejectProduct'])->name('admin.sellers.products.reject');
 });
 
-// Cash.id Payment Routes (outside auth middleware for webhook and callbacks)
-Route::post('/payment/cashid/create/{order}', [PaymentController::class, 'createCashIdPayment'])->name('payment.cashid.create')->middleware('auth');
-Route::get('/payment/cashid/status/{order}', [PaymentController::class, 'checkStatus'])->name('payment.cashid.status')->middleware('auth');
-Route::get('/payment/cashid/success', [PaymentController::class, 'cashIdSuccess'])->name('payment.cashid.success');
-Route::get('/payment/cashid/cancel', [PaymentController::class, 'cashIdCancel'])->name('payment.cashid.cancel');
-Route::post('/payment/cashid/webhook', [PaymentController::class, 'cashIdWebhook'])->name('payment.cashid.webhook');
+// WijayaPay Payment Routes (outside auth middleware for webhook and callbacks)
+Route::post('/payment/wijayapay/create/{order}', [PaymentController::class, 'createPayment'])->name('payment.wijayapay.create')->middleware('auth');
+Route::get('/payment/wijayapay/status/{order}', [PaymentController::class, 'checkStatus'])->name('payment.wijayapay.status')->middleware('auth');
+Route::get('/payment/wijayapay/waiting/{order}', [PaymentController::class, 'showPaymentWaiting'])->name('payment.wijayapay.waiting')->middleware('auth');
+Route::get('/payment/wijayapay/success', [PaymentController::class, 'paymentSuccess'])->name('payment.wijayapay.success');
+Route::get('/payment/wijayapay/cancel', [PaymentController::class, 'paymentCancel'])->name('payment.wijayapay.cancel');
+Route::post('/payment/wijayapay/callback', [PaymentController::class, 'webhook'])->name('payment.wijayapay.callback');

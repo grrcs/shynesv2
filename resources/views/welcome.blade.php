@@ -199,7 +199,7 @@
                     <a href="{{ route('login') }}" class="group block cursor-pointer w-full reveal-up opacity-0 translate-y-12 transition-all duration-[1200ms] ease-out" style="transition-delay: {{ $index * 150 }}ms;">
                         <div class="bg-[#f5f5f5] dark:bg-[#151515] overflow-hidden relative hover-crossfade w-full" style="aspect-ratio: 3 / 4; min-height: 480px;">
                             @if($product->image)
-                                <img src="{{ asset('storage/products/' . $product->image) }}" alt="{{ $product->title }}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-105">
+                                <img src="{{ $product->image_url }}" alt="{{ $product->title }}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-105">
                             @else
                                 <div class="absolute inset-0 bg-gradient-to-t from-[#eaeaea] to-[#f5f5f5] dark:from-[#111] dark:to-[#151515] flex items-center justify-center">
                                     <span class="font-serif text-[10rem] md:text-[12rem] xl:text-[14rem] leading-none text-black/[0.03] dark:text-white/[0.03] select-none">0{{ $index + 1 }}</span>

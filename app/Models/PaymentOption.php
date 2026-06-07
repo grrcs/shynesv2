@@ -8,6 +8,7 @@ class PaymentOption extends Model
 {
     protected $fillable = [
         'name',
+        'code',
         'description',
         'tax_percentage',
         'is_active',

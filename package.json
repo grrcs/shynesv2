@@ -8,6 +8,8 @@
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",
+        "@tensorflow/tfjs": "^4.11.0",
+        "@tensorflow-models/mobilenet": "^2.1.0",
         "axios": "^1.11.0",
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^2.0.0",

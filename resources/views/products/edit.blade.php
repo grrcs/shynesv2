@@ -27,7 +27,7 @@
 
                             <!-- Preview Gambar Lama -->
                             <div class="mb-3 relative rounded-lg overflow-hidden border border-gray-200 w-full h-64">
-                                <img src="{{ asset('storage/products/'.$product->image) }}" class="w-full h-full object-cover" alt="Preview">
+                                <img src="{{ $product->image_url }}" class="w-full h-full object-cover" alt="Preview">
                             </div>
 
                             <input type="file" name="image" accept="image/*" class="block w-full text-sm text-secondary dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-secondary dark:text-gray-300 hover:file:dark:bg-gray-800 cursor-pointer" data-preview-container="#primary-image-preview">
@@ -43,7 +43,7 @@
                                     @foreach($product->media as $media)
                                         <div class="relative rounded overflow-hidden border border-gray-200 aspect-square" id="media-container-{{ $media->id }}">
                                             @if($media->file_type == 'image')
-                                                <img src="{{ asset('storage/products/'.$media->file_path) }}" class="w-full h-full object-cover">
+                                                <img src="{{ asset('images/products/'.$media->file_path) }}" class="w-full h-full object-cover">
                                             @else
                                                 <video src="{{ asset('storage/products_video/'.$media->file_path) }}" class="w-full h-full object-cover" controls></video>
                                             @endif

@@ -3,7 +3,7 @@
         <div class="group flex flex-col items-start relative product-card" data-product-id="{{ $product->id }}">
             <!-- Product Image -->
             <a href="{{ route('products.show', $product->id) }}" class="w-full relative aspect-[3/4] bg-gray-100 dark:bg-[#151515] overflow-hidden mb-4 border border-thin dark:border-gray-800 transition-colors">
-                <img src="{{ asset('storage/products/'.$product->image) }}" alt="{{ $product->title }}" 
+                <img src="{{ $product->image_url }}" alt="{{ $product->title }}" 
                      class="w-full h-full object-cover grayscale transition-all duration-700 ease-in-out group-hover:grayscale-0 group-hover:scale-105 select-image">
                 
                 @if($product->stock <= 0 || $product->status == 'sold_out')
@@ -34,21 +34,20 @@
             <!-- Actions (Always visible or visible on hover) -->
             @if($product->stock > 0 && $product->status != 'sold_out')
                 <div class="w-full flex gap-2">
-                    <!-- Beli Sekarang (Direct) -->
-                    <form action="{{ route('cart.store') }}" method="POST" class="flex-1">
-                        @csrf
+                    <!-- Beli Sekarang (Direct Buy) -->
+                    <form action="{{ route('orders.directBuyPage') }}" method="GET" class="flex-1">
                         <input type="hidden" name="product_id" value="{{ $product->id }}">
                         <input type="hidden" name="quantity" value="1">
                         <button type="submit" class="w-full h-10 bg-primary text-white dark:bg-white dark:text-primary text-xs tracking-widest uppercase font-medium hover:bg-black dark:hover:bg-gray-200 transition-colors border border-primary dark:border-white">
                             Beli
                         </button>
                     </form>
-                    
+
                     <!-- Tambah ke Keranjang (AJAX) -->
                     <button type="button" onclick="addToCart({{ $product->id }}, 1, this)" class="w-10 h-10 flex-shrink-0 bg-white dark:bg-primary border border-thin dark:border-gray-700 flex items-center justify-center text-primary dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" title="Tambah ke Keranjang">
                         <i class="fa-solid fa-cart-plus text-sm"></i>
                     </button>
-                    
+
                     <!-- Wishlist (AJAX) -->
                     <button type="button" onclick="addToWishlist({{ $product->id }}, this)" class="w-10 h-10 flex-shrink-0 bg-white dark:bg-primary border border-thin dark:border-gray-700 flex items-center justify-center text-primary dark:text-white hover:bg-red-50 hover:text-red-500 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400 dark:hover:border-red-900 transition-colors" title="Favoritkan">
                         @php

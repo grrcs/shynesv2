@@ -40,6 +40,47 @@
                     @enderror
                 </div>
 
+                <!-- Kode Channel -->
+                <div>
+                    <label for="code" class="block text-sm font-bold text-secondary dark:text-gray-300 mb-2">
+                        Kode Channel Pembayaran <span class="text-red-500">*</span>
+                    </label>
+                    <select 
+                        id="code" 
+                        name="code" 
+                        required
+                        class="w-full px-4 py-3 bg-transparent border border-thin dark:border-gray-800 text-primary dark:text-white rounded-lg outline-none transition-colors focus:ring-2 focus:ring-primary dark:focus:ring-white @error('code') border-red-500 @enderror"
+                    >
+                        <option value="">-- Pilih Channel --</option>
+                        <optgroup label="Wijaya Pay Gateway">
+                            <option value="QRIS" {{ old('code', $paymentOption->code) == 'QRIS' ? 'selected' : '' }}>QRIS</option>
+                            <option value="BRIVA" {{ old('code', $paymentOption->code) == 'BRIVA' ? 'selected' : '' }}>BRI Virtual Account</option>
+                            <option value="BCAVA" {{ old('code', $paymentOption->code) == 'BCAVA' ? 'selected' : '' }}>BCA Virtual Account</option>
+                            <option value="BNIVA" {{ old('code', $paymentOption->code) == 'BNIVA' ? 'selected' : '' }}>BNI Virtual Account</option>
+                            <option value="BSIVA" {{ old('code', $paymentOption->code) == 'BSIVA' ? 'selected' : '' }}>BSI Virtual Account</option>
+                            <option value="MANDIRIVA" {{ old('code', $paymentOption->code) == 'MANDIRIVA' ? 'selected' : '' }}>Mandiri Virtual Account</option>
+                            <option value="PERMATAVA" {{ old('code', $paymentOption->code) == 'PERMATAVA' ? 'selected' : '' }}>Permata Virtual Account</option>
+                            <option value="MAYBANKVA" {{ old('code', $paymentOption->code) == 'MAYBANKVA' ? 'selected' : '' }}>Maybank Virtual Account</option>
+                            <option value="MUAMALATVA" {{ old('code', $paymentOption->code) == 'MUAMALATVA' ? 'selected' : '' }}>Muamalat Virtual Account</option>
+                            <option value="CIMBVA" {{ old('code', $paymentOption->code) == 'CIMBVA' ? 'selected' : '' }}>CIMB Virtual Account</option>
+                            <option value="DANAMONVA" {{ old('code', $paymentOption->code) == 'DANAMONVA' ? 'selected' : '' }}>Danamon Virtual Account</option>
+                            <option value="BNCVA" {{ old('code', $paymentOption->code) == 'BNCVA' ? 'selected' : '' }}>BNC Virtual Account</option>
+                            <option value="OCBCVA" {{ old('code', $paymentOption->code) == 'OCBCVA' ? 'selected' : '' }}>OCBC Virtual Account</option>
+                            <option value="INDOMARET" {{ old('code', $paymentOption->code) == 'INDOMARET' ? 'selected' : '' }}>Indomaret</option>
+                            <option value="ALFAMART" {{ old('code', $paymentOption->code) == 'ALFAMART' ? 'selected' : '' }}>Alfamart</option>
+                        </optgroup>
+                        <optgroup label="Non-Gateway">
+                            <option value="cash" {{ old('code', $paymentOption->code) == 'cash' ? 'selected' : '' }}>Tunai (Cash)</option>
+                            <option value="bank_transfer" {{ old('code', $paymentOption->code) == 'bank_transfer' ? 'selected' : '' }}>Transfer Bank Manual</option>
+                            <option value="cod" {{ old('code', $paymentOption->code) == 'cod' ? 'selected' : '' }}>COD (Cash on Delivery)</option>
+                        </optgroup>
+                    </select>
+                    <p class="text-xs text-secondary dark:text-gray-400 mt-1">Pilih channel yang terhubung ke Wijaya Pay gateway.</p>
+                    @error('code')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <!-- Persentase Pajak -->
                 <div>
                     <label for="tax_percentage" class="block text-sm font-bold text-secondary dark:text-gray-300 mb-2">

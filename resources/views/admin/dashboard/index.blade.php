@@ -5,8 +5,56 @@
 @section('content')
 <div class="max-w-7xl mx-auto">
     <div class="flex items-center justify-between mb-8">
-        <h2 class="text-3xl font-bold text-gray-900 dark:text-white transition-colors">Dashboard Admin</h2>
-        <div class="text-sm text-gray-500 dark:text-gray-400 transition-colors">Overview sistem Anda</div>
+        <div>
+            <h2 class="text-3xl font-bold text-gray-900 dark:text-white transition-colors">Dashboard Admin</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400 transition-colors">Overview sistem Anda</p>
+        </div>
+        <a href="{{ route('admin.pos') }}" class="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors">
+            <i class="fa-solid fa-cash-register mr-2"></i>Buka Kasir
+        </a>
+    </div>
+
+    <!-- POS Sales Report -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <!-- Today's Sales -->
+        <div class="bg-gradient-to-br from-green-500 to-green-600 p-6 rounded-2xl text-white">
+            <div class="flex items-center justify-between mb-4">
+                <div class="text-green-100 text-sm">Penjualan Hari Ini</div>
+                <div class="p-2 bg-white/20 rounded-lg"><i class="fa-solid fa-calendar-day"></i></div>
+            </div>
+            <div class="text-3xl font-bold mb-1">Rp {{ number_format($todayRevenue, 0, ',', '.') }}</div>
+            <div class="text-green-100 text-sm">{{ $todayOrderCount }} transaksi</div>
+        </div>
+
+        <!-- Weekly Sales -->
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-2xl text-white">
+            <div class="flex items-center justify-between mb-4">
+                <div class="text-blue-100 text-sm">Penjualan Minggu Ini</div>
+                <div class="p-2 bg-white/20 rounded-lg"><i class="fa-solid fa-chart-line"></i></div>
+            </div>
+            <div class="text-3xl font-bold mb-1">Rp {{ number_format($weeklyRevenue, 0, ',', '.') }}</div>
+            <div class="text-blue-100 text-sm">{{ $weeklyOrderCount }} transaksi</div>
+        </div>
+    </div>
+
+    <!-- Weekly Chart -->
+    <div class="bg-white dark:bg-[#151515] p-6 rounded-2xl border border-gray-200 dark:border-gray-800 mb-8 transition-colors">
+        <h3 class="font-bold text-gray-900 dark:text-white mb-4">Grafik Penjualan 7 Hari Terakhir</h3>
+        <div class="flex items-end justify-between gap-2 h-40">
+            @foreach($weeklyData as $index => $day)
+                <div class="flex-1 flex flex-col items-center">
+                    <div class="w-full bg-gray-100 dark:bg-gray-800 rounded-t relative" style="height: 100%;">
+                        <div class="absolute bottom-0 w-full bg-gradient-to-t from-blue-500 to-blue-400 rounded-t transition-all hover:from-blue-600 hover:to-blue-500" 
+                             style="height: {{ $weeklyRevenue > 0 ? ($day['revenue'] / $weeklyRevenue * 100) : 0 }}%"></div>
+                    </div>
+                    <div class="text-[10px] text-gray-500 dark:text-gray-400 mt-2">{{ $day['day'] }}</div>
+                    <div class="text-[10px] text-gray-400 dark:text-gray-500">{{ $day['date'] }}</div>
+                </div>
+            @endforeach
+        </div>
+        <div class="mt-4 text-center">
+            <span class="text-xs text-gray-500 dark:text-gray-400">Total: Rp {{ number_format($weeklyRevenue, 0, ',', '.') }} | {{ $weeklyOrderCount }} transaksi</span>
+        </div>
     </div>
 
     <!-- Stats Grid -->
@@ -104,7 +152,7 @@
                 @forelse($lowStockProducts as $product)
                     <div class="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-900/30 transition-colors">
                         <div class="flex items-center gap-3">
-                            <img src="{{ asset('storage/products/'.$product->image) }}" class="w-10 h-10 rounded-md object-cover bg-white dark:bg-gray-800">
+                            <img src="{{ $product->image_url }}" class="w-10 h-10 rounded-md object-cover bg-white dark:bg-gray-800">
                             <div>
                                 <div class="font-bold text-gray-900 dark:text-white text-sm transition-colors">{{ $product->title }}</div>
                                 <div class="text-xs text-red-600 dark:text-red-400 transition-colors">Sisa Stok: {{ $product->stock }}</div>

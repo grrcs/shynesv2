@@ -474,11 +474,9 @@
 
     <!-- Main -->
     <main class="pos-main">
-        <div class="tab-row">
-            <button class="pos-tab active">PRODUK</button>
-            <button class="pos-tab" onclick="toastr.info('Coming Soon')">TAGIHAN</button>
-            <button class="pos-tab" onclick="toastr.info('Coming Soon')">TIKET</button>
-        </div>
+<div class="tab-row">
+<button class="pos-tab active">PRODUK</button>
+</div>
 
         <div class="product-header-line">
             <h2>PRODUK</h2>
@@ -490,9 +488,9 @@
 
         <div class="product-grid">
             @foreach($products as $product)
-                <div class="p-card" onclick="addToPosCart({{ $product->id }}, '{{ $product->title }}', {{ $product->is_discount_active && $product->discount_price ? $product->discount_price : $product->price }}, '{{ asset('storage/products/'.$product->image) }}', '{{ $product->sku ?? $product->id }}')">
+                <div class="p-card" onclick="addToPosCart({{ $product->id }}, {{ json_encode($product->title) }}, {{ $product->is_discount_active && $product->discount_price ? $product->discount_price : $product->price }}, '{{ $product->image_url }}', '{{ $product->sku ?? $product->id }}')">
                     <div class="p-img">
-                        <img src="{{ asset('storage/products/'.$product->image) }}" alt="{{ $product->title }}">
+                        <img src="{{ $product->image_url }}" alt="{{ $product->title }}">
                     </div>
                     <div class="p-meta">
                         <span class="p-name">{{ $product->title }}</span>
@@ -581,7 +579,46 @@
         
         <div style="display: flex; gap: 16px; margin-top: 32px;">
             <button onclick="cancelCashConfirm()" class="btn-batal" style="flex: 1;">BATAL</button>
-            <button onclick="confirmCashReceived()" class="btn-bayar" style="flex: 1;">UANG DITERIMA</button>
+            <button onclick="openCashScanner()" class="btn-bayar" style="flex: 1;">📷 SCAN UANG</button>
+            <button onclick="confirmCashReceived()" class="btn-batal" style="flex: 1;">SKIP</button>
+        </div>
+    </div>
+</div>
+
+<!-- Cash Scanner Modal -->
+<div id="cash-scanner-modal" class="checkout-overlay" style="display: none; z-index: 1100;">
+    <div class="checkout-box" style="max-width: 560px; padding: 24px;">
+        <h3 class="checkout-title">SCAN UANG - AI VISION</h3>
+        
+        <div id="scanner-loading" style="text-align: center; padding: 32px; display: none;">
+            <div style="font-size: 14px; margin-bottom: 12px;">Memuat AI Model...</div>
+            <div style="width: 100%; height: 4px; background: var(--pos-border); border-radius: 2px; overflow: hidden;">
+                <div id="model-load-progress" style="width: 0%; height: 100%; background: var(--pos-accent); transition: width 0.3s;"></div>
+            </div>
+        </div>
+
+        <div id="scanner-content" style="display: none;">
+            <div style="position: relative; margin: 16px 0; border-radius: 8px; overflow: hidden; background: #000;">
+                <video id="cash-scanner-video" autoplay playsinline style="width: 100%; display: block;"></video>
+                <canvas id="cash-scanner-canvas" style="display: none;"></canvas>
+                <div id="scanner-guide" style="position: absolute; inset: 8%; border: 2px dashed rgba(255,255,255,0.6); border-radius: 8px; pointer-events: none; display: flex; align-items: center; justify-content: center;">
+                    <span style="color: rgba(255,255,255,0.7); font-size: 11px; background: rgba(0,0,0,0.5); padding: 4px 10px; border-radius: 4px;">Posisikan uang di dalam kotak</span>
+                </div>
+            </div>
+            
+            <div id="scan-result" style="display: none; margin: 16px 0; padding: 16px; border-radius: 8px; text-align: center;"></div>
+            
+            <div id="scan-features" style="display: none; margin: 12px 0; padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.03); font-size: 11px;"></div>
+            
+            <div id="scan-history" style="margin: 12px 0; max-height: 100px; overflow-y: auto;"></div>
+            
+            <div style="display: flex; gap: 12px; margin-top: 16px;">
+                <button onclick="captureAndScan()" class="btn-bayar" style="flex: 2;">📷 CAPTURE & ANALISIS</button>
+                <button onclick="closeCashScanner(false)" class="btn-batal" style="flex: 1;">BATAL</button>
+            </div>
+            <div style="margin-top: 12px;">
+                <button id="btn-accept-cash" onclick="closeCashScanner(true)" class="btn-bayar" style="width: 100%; display: none;">✓ TERIMA PEMBAYARAN</button>
+            </div>
         </div>
     </div>
 </div>
@@ -726,7 +763,7 @@
                 // Route based on payment type
                 if (d.payment_type === 'cash' || d.payment_type === 'cod') {
                     showCashConfirmModal(d);
-                } else if (d.payment_url) {
+                } else if (d.payment_type && d.payment_type !== 'cash' && d.payment_type !== 'cod') {
                     showPaymentWaitingModal(d);
                 } else {
                     showReceiptModal(d);
@@ -771,17 +808,29 @@
     function showPaymentWaitingModal(data) {
         currentOrderData = data;
         const modal = document.getElementById('payment-waiting-modal');
+        const paymentType = data.payment_type || '';
+        const isQris = paymentType === 'QRIS';
+        const isVa = paymentType.endsWith('VA') || paymentType === 'VA';
         
         // Show appropriate section
-        if (data.payment_type === 'QRIS') {
+        if (isQris && data.payment_url) {
             document.getElementById('qris-section').style.display = 'block';
             document.getElementById('va-section').style.display = 'none';
             document.getElementById('qris-image').src = data.payment_url;
-        } else if (data.payment_type === 'VA') {
+        } else if (isVa) {
             document.getElementById('qris-section').style.display = 'none';
             document.getElementById('va-section').style.display = 'block';
-            document.getElementById('va-bank').innerText = 'BCA';
-            document.getElementById('va-number').innerText = data.payment_token || 'N/A';
+            // Extract bank name from code (e.g., "BRIVA" -> "BRI")
+            const bankName = paymentType.replace('VA', '');
+            document.getElementById('va-bank').innerText = bankName || 'Virtual Account';
+            document.getElementById('va-number').innerText = data.payment_url || data.payment_token || 'N/A';
+            document.getElementById('va-amount').innerText = 'Rp ' + f(data.total);
+        } else {
+            // Retail or other - show as VA-like with payment code
+            document.getElementById('qris-section').style.display = 'none';
+            document.getElementById('va-section').style.display = 'block';
+            document.getElementById('va-bank').innerText = paymentType;
+            document.getElementById('va-number').innerText = data.payment_url || data.payment_token || 'N/A';
             document.getElementById('va-amount').innerText = 'Rp ' + f(data.total);
         }
         
@@ -914,6 +963,166 @@
         document.getElementById('receipt-modal').style.display = 'none';
         posCart = []; // Clear cart
         location.reload();
+    }
+
+    // === CASH SCANNER (AI Vision via OpenRouter) ===
+    let scannerStream = null;
+    let scanHistory = [];
+
+    async function openCashScanner() {
+        document.getElementById('cash-confirm-modal').style.display = 'none';
+        document.getElementById('cash-scanner-modal').style.display = 'flex';
+        document.getElementById('scan-result').style.display = 'none';
+        document.getElementById('scan-features').style.display = 'none';
+        document.getElementById('btn-accept-cash').style.display = 'none';
+        scanHistory = [];
+        updateScanHistory();
+
+        document.getElementById('scanner-loading').style.display = 'none';
+        document.getElementById('scanner-content').style.display = 'block';
+        startScannerCamera();
+    }
+
+    async function startScannerCamera() {
+        try {
+            scannerStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+            });
+            document.getElementById('cash-scanner-video').srcObject = scannerStream;
+        } catch (e) {
+            alert('Tidak dapat mengakses kamera: ' + e.message);
+            closeCashScanner(false);
+        }
+    }
+
+    function stopScannerCamera() {
+        if (scannerStream) {
+            scannerStream.getTracks().forEach(t => t.stop());
+            scannerStream = null;
+        }
+        const video = document.getElementById('cash-scanner-video');
+        if (video) video.srcObject = null;
+    }
+
+    function closeCashScanner(accepted) {
+        stopScannerCamera();
+        document.getElementById('cash-scanner-modal').style.display = 'none';
+        if (accepted) {
+            confirmCashReceived();
+        } else {
+            document.getElementById('cash-confirm-modal').style.display = 'flex';
+        }
+    }
+
+    function captureAndScan() {
+        const video = document.getElementById('cash-scanner-video');
+        const canvas = document.getElementById('cash-scanner-canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0);
+
+        // Convert to base64 JPEG
+        const base64 = canvas.toDataURL('image/jpeg', 0.8);
+
+        // Show loading state
+        const resultEl = document.getElementById('scan-result');
+        resultEl.style.display = 'block';
+        resultEl.style.background = 'rgba(0,0,0,0.03)';
+        resultEl.style.border = '1px solid var(--pos-border)';
+        resultEl.innerHTML = '<p style="text-align:center; font-size: 13px;">🔍 Menganalisis dengan AI...</p>';
+        document.getElementById('scan-features').style.display = 'none';
+
+        fetch('{{ route("admin.pos.cashDetection") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ image: base64 })
+        })
+        .then(r => r.json())
+        .then(response => {
+            if (response.success && response.data) {
+                const result = response.data;
+                result.timestamp = new Date().toLocaleTimeString('id-ID');
+                scanHistory.unshift(result);
+                if (scanHistory.length > 5) scanHistory.pop();
+                displayScanResult(result);
+                updateScanHistory();
+                if (result.confidence >= 55) {
+                    document.getElementById('btn-accept-cash').style.display = 'block';
+                }
+            } else {
+                resultEl.innerHTML = `<p style="color:#ef4444; text-align:center;">❌ ${response.message || 'Gagal menganalisis'}</p>`;
+            }
+        })
+        .catch(err => {
+            console.error('Scan error:', err);
+            resultEl.innerHTML = '<p style="color:#ef4444; text-align:center;">❌ Error: ' + err.message + '</p>';
+        });
+    }
+
+    function displayScanResult(result) {
+        const el = document.getElementById('scan-result');
+        const featEl = document.getElementById('scan-features');
+        const isAuth = result.is_authentic || result.confidence >= 55;
+        const bgColor = isAuth ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)';
+        const borderColor = isAuth ? '#22c55e' : '#ef4444';
+        const verdict = result.verdict || (isAuth ? 'ASLI' : 'TIDAK YAKIN');
+        const statusText = isAuth ? '✓ ' + verdict : '⚠ ' + verdict;
+        const statusColor = isAuth ? '#22c55e' : '#ef4444';
+
+        el.style.display = 'block';
+        el.style.background = bgColor;
+        el.style.border = `1px solid ${borderColor}`;
+        el.innerHTML = `
+            <p style="font-size: 18px; font-weight: 700; color: ${statusColor}; margin-bottom: 8px;">${statusText}</p>
+            <p style="font-size: 14px; margin-bottom: 8px;">Confidence: <strong>${result.confidence}%</strong></p>
+            ${result.summary ? `<p style="font-size: 12px; color: var(--pos-text-muted); margin-top: 4px;">${result.summary}</p>` : ''}
+        `;
+
+        // Show security features if available
+        if (result.features) {
+            featEl.style.display = 'block';
+            const f = result.features;
+            featEl.innerHTML = `
+                <div style="margin-bottom: 8px; font-weight: 600; font-size: 11px;">Fitur Keamanan (AI Analysis):</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px;">
+                    ${f.watermark ? `<div>${getScoreIcon(f.watermark.score)} Watermark: ${f.watermark.score}%<br><span style="color:var(--pos-text-muted);font-size:10px;">${f.watermark.note || ''}</span></div>` : ''}
+                    ${f.security_thread ? `<div>${getScoreIcon(f.security_thread.score)} Benang: ${f.security_thread.score}%<br><span style="color:var(--pos-text-muted);font-size:10px;">${f.security_thread.note || ''}</span></div>` : ''}
+                    ${f.color_print ? `<div>${getScoreIcon(f.color_print.score)} Warna/Cetak: ${f.color_print.score}%<br><span style="color:var(--pos-text-muted);font-size:10px;">${f.color_print.note || ''}</span></div>` : ''}
+                    ${f.microprint ? `<div>${getScoreIcon(f.microprint.score)} Microprint: ${f.microprint.score}%<br><span style="color:var(--pos-text-muted);font-size:10px;">${f.microprint.note || ''}</span></div>` : ''}
+                    ${f.color_shift ? `<div>${getScoreIcon(f.color_shift.score)} Color-Shift: ${f.color_shift.score}%<br><span style="color:var(--pos-text-muted);font-size:10px;">${f.color_shift.note || ''}</span></div>` : ''}
+                    ${f.paper_quality ? `<div>${getScoreIcon(f.paper_quality.score)} Kertas: ${f.paper_quality.score}%<br><span style="color:var(--pos-text-muted);font-size:10px;">${f.paper_quality.note || ''}</span></div>` : ''}
+                </div>
+                <p style="font-size: 9px; color: var(--pos-text-muted); margin-top: 10px;">* AI Vision (Google Gemma 4). Bukan pengganti alat UV profesional.</p>
+            `;
+        } else {
+            featEl.style.display = 'none';
+        }
+    }
+
+    function getScoreIcon(score) {
+        if (score >= 70) return '<span style="color:#22c55e;">●</span>';
+        if (score >= 40) return '<span style="color:#f59e0b;">●</span>';
+        return '<span style="color:#ef4444;">●</span>';
+    }
+
+    function updateScanHistory() {
+        const el = document.getElementById('scan-history');
+        if (scanHistory.length === 0) {
+            el.innerHTML = '<p style="font-size: 11px; color: var(--pos-text-muted); text-align: center;">Belum ada scan</p>';
+            return;
+        }
+        el.innerHTML = scanHistory.map((r, i) => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; margin-bottom: 4px; background: rgba(0,0,0,0.03); border-radius: 4px; font-size: 11px;">
+                <span style="font-weight: 600;">${r.verdict || (r.is_authentic ? 'ASLI' : '?')}</span>
+                <span style="color: ${(r.is_authentic || r.confidence >= 55) ? '#22c55e' : '#ef4444'}; font-weight: 600;">${r.confidence}%</span>
+                <span style="color: var(--pos-text-muted);">${r.timestamp || ''}</span>
+            </div>
+        `).join('');
     }
 </script>
 @endpush
