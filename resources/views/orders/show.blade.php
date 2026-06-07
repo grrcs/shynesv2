@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Receipt {{ $order->invoice_number }} - Shyness</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <!-- We inline standard fonts for print if needed -->
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
     <style>
@@ -139,6 +142,17 @@
     </style>
 </head>
 <body onload="window.print()">
+
+    @if(session('error'))
+    <div style="background:#FEE2E2;border:1px solid #EF4444;color:#991B1B;padding:16px;border-radius:8px;margin-bottom:24px;font-size:14px;">
+        {{ session('error') }}
+    </div>
+    @endif
+    @if(session('success'))
+    <div style="background:#D1FAE5;border:1px solid #10B981;color:#065F46;padding:16px;border-radius:8px;margin-bottom:24px;font-size:14px;">
+        {{ session('success') }}
+    </div>
+    @endif
 
     <div class="header">
         <h1>SHYNESS</h1>
