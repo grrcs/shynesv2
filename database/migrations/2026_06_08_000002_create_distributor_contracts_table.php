@@ -17,7 +17,7 @@ return new class extends Migration
             $table->date('contract_start_date');
             $table->date('contract_end_date');
             $table->decimal('contract_value', 15, 2);
-            $table->enum('status', ['active', 'expired', 'terminated'])->default('active');
+            $table->string('status')->default('active');
             $table->text('file_path');
             $table->string('encryption_key_hash', 64);
             $table->string('tenant_id', 36);

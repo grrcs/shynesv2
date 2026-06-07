@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('email');
             $table->string('phone');
             $table->text('address');
-            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->string('status')->default('active');
             $table->string('tenant_id', 36);
             $table->timestamps();
             $table->softDeletes();
