@@ -249,7 +249,7 @@ class SupplierContractSeeder extends Seeder
             // Step 1: Register user as pembeli (tanpa tenant_id)
             $user = User::create([
                 'name' => $data['contact'],
-                'email' => 'supplier' . substr($data['code'], 2) . '@test.com',
+                'email' => 'supplier' . ((int) substr($data['code'], 2)) . '@test.com',
                 'role' => 'pembeli',
                 'password' => 'password',
                 'email_verified_at' => now(),
