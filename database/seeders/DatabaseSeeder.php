@@ -15,25 +15,25 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::firstOrCreate(
+        User::updateOrCreate(
             ['email' => 'admin@gmail.com'],
             [
                 'name' => 'Admin User',
                 'email' => 'admin@gmail.com',
                 'role' => 'admin',
-                'password' => bcrypt('password'),
+                'password' => 'password',
                 'email_verified_at' => now(),
                 'tenant_id' => null,
             ]
         );
 
-        User::firstOrCreate(
+        User::updateOrCreate(
             ['email' => 'pembeli@gmail.com'],
             [
                 'name' => 'Pembeli User',
                 'email' => 'pembeli@gmail.com',
                 'role' => 'pembeli',
-                'password' => bcrypt('password'),
+                'password' => 'password',
                 'email_verified_at' => now(),
             ]
         );
@@ -52,6 +52,7 @@ class DatabaseSeeder extends Seeder
             PaymentOptionSeeder::class,
             AddressSeeder::class,
             LoyaltyPointSeeder::class,
+            SupplierContractSeeder::class,
         ]);
     }
 }
