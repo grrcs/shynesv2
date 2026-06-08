@@ -9,6 +9,7 @@ use App\Services\ContractEncryptionService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -234,10 +235,13 @@ class SupplierContractSeeder extends Seeder
 
     public function run(): void
     {
-        // Hapus data lama (hard delete to reset auto-increment)
+        // Hapus data lama (hard delete + reset auto-increment)
+        Schema::disableForeignKeyConstraints();
         DB::table('distributor_contracts')->whereIn('contract_code', array_column($this->contracts, 'code'))->delete();
+        DB::statement('ALTER TABLE distributor_contracts AUTO_INCREMENT = 1');
         Supplier::withoutGlobalScope('tenant')->where('email', 'like', '%@test.com')->delete();
         User::where('email', 'like', 'supplier%')->delete();
+        Schema::enableForeignKeyConstraints();
         Storage::disk('contracts')->deleteDirectory('suppliers');
 
         $encryptionService = app(ContractEncryptionService::class);
