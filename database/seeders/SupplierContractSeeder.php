@@ -7,6 +7,7 @@ use App\Models\Supplier;
 use App\Models\DistributorContract;
 use App\Services\ContractEncryptionService;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -233,8 +234,8 @@ class SupplierContractSeeder extends Seeder
 
     public function run(): void
     {
-        // Hapus data lama & file kontrak
-        DistributorContract::whereIn('contract_code', array_column($this->contracts, 'code'))->delete();
+        // Hapus data lama (hard delete to reset auto-increment)
+        DB::table('distributor_contracts')->whereIn('contract_code', array_column($this->contracts, 'code'))->delete();
         Supplier::withoutGlobalScope('tenant')->where('email', 'like', '%@test.com')->delete();
         User::where('email', 'like', 'supplier%')->delete();
         Storage::disk('contracts')->deleteDirectory('suppliers');
