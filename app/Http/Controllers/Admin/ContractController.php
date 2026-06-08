@@ -48,7 +48,9 @@ class ContractController extends Controller
 
     public function create()
     {
-        $suppliers = Supplier::withoutGlobalScope('tenant')->get();
+        $suppliers = Supplier::withoutGlobalScope('tenant')
+            ->where('status', 'active')
+            ->get();
         return view('admin.contracts.create', compact('suppliers'));
     }
 

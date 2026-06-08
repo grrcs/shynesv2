@@ -164,6 +164,8 @@
                             <a href="{{ route('posts.index') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('posts.*') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">Postingan</a>
                             <a href="{{ route('categories.index') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('categories.*') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">Kategori</a>
                             <a href="{{ route('admin.sellers.contracts') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('admin.sellers.*') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">Penjual</a>
+                            <a href="{{ route('admin.suppliers.pending') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('admin.suppliers.*') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">Supplier</a>
+                            <a href="{{ route('admin.contracts.index') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('admin.contracts.*') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">Kontrak</a>
                             <a href="{{ route('banners.index') }}" class="text-xs tracking-widest uppercase {{ request()->routeIs('banners.*') ? 'font-medium border-b border-black dark:border-white' : 'text-secondary hover:text-primary dark:hover:text-white transition-colors' }}">Banner</a>
                         @endif
                         
@@ -229,6 +231,15 @@
                                     <a href="{{ route('seller.index') }}" class="block px-4 py-2 text-xs tracking-widest uppercase text-secondary hover:text-primary dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                                         {{ auth()->user()->isPenjual() ? 'Dashboard Penjual' : 'Jadi Penjual' }}
                                     </a>
+                                    @if(auth()->user()->isSupplier())
+                                    <a href="{{ route('admin.contracts.index') }}" class="block px-4 py-2 text-xs tracking-widest uppercase text-secondary hover:text-primary dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                        Kontrak Saya
+                                    </a>
+                                    @else
+                                    <a href="{{ route('supplier.register') }}" class="block px-4 py-2 text-xs tracking-widest uppercase text-secondary hover:text-primary dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                        Daftar Supplier
+                                    </a>
+                                    @endif
                                     @endif
                                 </div>
                                 <div class="py-1 border-t border-thin">
@@ -263,6 +274,8 @@
                         <a href="{{ route('posts.index') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('posts.*') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Postingan</a>
                         <a href="{{ route('categories.index') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('categories.*') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Kategori</a>
                         <a href="{{ route('admin.sellers.contracts') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('admin.sellers.*') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Penjual</a>
+                        <a href="{{ route('admin.suppliers.pending') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('admin.suppliers.*') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Supplier</a>
+                        <a href="{{ route('admin.contracts.index') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('admin.contracts.*') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Kontrak</a>
                         <a href="{{ route('banners.index') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('banners.*') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Banner</a>
                     @endif
                     <a href="{{ route('products.index') }}" class="block text-xs md:hidden tracking-widest uppercase {{ request()->routeIs('products.*') ? 'font-medium text-primary dark:text-white' : 'text-secondary hover:text-primary dark:hover:text-white' }}">Produk</a>

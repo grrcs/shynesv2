@@ -141,6 +141,15 @@ Route::middleware(['auth'])->group(function () {
     // AI Cash Detection
     Route::post('/admin/pos/cash-detection', [App\Http\Controllers\CashDetectionController::class, 'analyze'])->name('admin.pos.cashDetection');
 
+    // Supplier Registration (user can become a supplier)
+    Route::get('/supplier/register', [App\Http\Controllers\SupplierRegistrationController::class, 'create'])->name('supplier.register');
+    Route::post('/supplier/register', [App\Http\Controllers\SupplierRegistrationController::class, 'store'])->name('supplier.register.store');
+
+    // Admin Supplier Approval
+    Route::get('/admin/suppliers/pending', [App\Http\Controllers\Admin\SupplierApprovalController::class, 'pending'])->name('admin.suppliers.pending');
+    Route::post('/admin/suppliers/{supplier}/approve', [App\Http\Controllers\Admin\SupplierApprovalController::class, 'approve'])->name('admin.suppliers.approve');
+    Route::post('/admin/suppliers/{supplier}/reject', [App\Http\Controllers\Admin\SupplierApprovalController::class, 'reject'])->name('admin.suppliers.reject');
+
     // Seller Routes (for users requesting to become sellers)
     Route::get('/seller', [App\Http\Controllers\SellerController::class, 'index'])->name('seller.index');
     Route::get('/seller/request', [App\Http\Controllers\SellerController::class, 'requestForm'])->name('seller.request');

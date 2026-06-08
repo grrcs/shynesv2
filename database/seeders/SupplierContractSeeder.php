@@ -7,6 +7,7 @@ use App\Models\Supplier;
 use App\Models\DistributorContract;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 
 class SupplierContractSeeder extends Seeder
 {
@@ -230,33 +231,54 @@ class SupplierContractSeeder extends Seeder
 
     public function run(): void
     {
+        // Clear existing demo data
         DistributorContract::whereIn('contract_code', array_column($this->contracts, 'code'))->forceDelete();
-        Supplier::whereIn('id', Supplier::pluck('id'))->forceDelete();
-        User::where('role', 'supplier')->forceDelete();
+
+        $supplierIds = Supplier::withoutGlobalScope('tenant')
+            ->whereIn('id', function ($q) {
+                $q->select('id')->from('suppliers')
+                    ->where('email', 'like', '%@test.com');
+            })->pluck('id');
+        Supplier::withoutGlobalScope('tenant')->whereIn('id', $supplierIds)->forceDelete();
+
+        User::where('email', 'like', 'supplier%@test.com')->forceDelete();
 
         foreach ($this->contracts as $data) {
             $tenantId = (string) Str::uuid();
 
+            // Step 1: Register user as pembeli (tanpa tenant_id)
             $user = User::create([
                 'name' => $data['contact'],
                 'email' => 'supplier' . substr($data['code'], 2) . '@test.com',
-                'role' => 'supplier',
+                'role' => 'pembeli',
                 'password' => 'password',
-                'tenant_id' => $tenantId,
                 'email_verified_at' => now(),
             ]);
 
-            $supplier = Supplier::create([
+            // Step 2: Register supplier (status pending, tanpa tenant_id)
+            $supplier = Supplier::withoutGlobalScope('tenant')->create([
                 'user_id' => $user->id,
                 'company_name' => $data['supplier'],
                 'contact_person' => $data['contact'],
                 'email' => $data['email'],
                 'phone' => $data['phone'],
                 'address' => $data['address'],
+                'status' => 'pending',
+            ]);
+
+            // Step 3: Admin approves supplier
+            $supplier->update([
                 'status' => 'active',
+                'tenant_id' => $tenantId,
+                'approved_at' => now(),
+            ]);
+
+            $user->update([
+                'role' => 'supplier',
                 'tenant_id' => $tenantId,
             ]);
 
+            // Step 4: Create distributor contract
             DistributorContract::create([
                 'contract_code' => $data['code'],
                 'supplier_id' => $supplier->id,
@@ -271,11 +293,11 @@ class SupplierContractSeeder extends Seeder
                 'tenant_id' => $tenantId,
             ]);
 
-            $this->command->info("Created: {$data['code']} - {$data['supplier']}");
+            $this->command->info("Created: {$data['code']} - {$data['supplier']} (via register→approve flow)");
         }
 
         $this->command->info('');
-        $this->command->info('=== LOGIN CREDENTIALS ===');
+        $this->command->info('=== DEMO CREDENTIALS ===');
         $this->command->info('Admin: admin@gmail.com / password');
         for ($i = 1; $i <= 15; $i++) {
             $code = 'DK' . str_pad((string) $i, 2, '0', STR_PAD_LEFT);
