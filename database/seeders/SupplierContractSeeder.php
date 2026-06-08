@@ -6,8 +6,9 @@ use App\Models\User;
 use App\Models\Supplier;
 use App\Models\DistributorContract;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class SupplierContractSeeder extends Seeder
 {
@@ -231,31 +232,25 @@ class SupplierContractSeeder extends Seeder
 
     public function run(): void
     {
-        // Clear existing demo data
-        DistributorContract::whereIn('contract_code', array_column($this->contracts, 'code'))->forceDelete();
-
-        $supplierIds = Supplier::withoutGlobalScope('tenant')
-            ->whereIn('id', function ($q) {
-                $q->select('id')->from('suppliers')
-                    ->where('email', 'like', '%@test.com');
-            })->pluck('id');
-        Supplier::withoutGlobalScope('tenant')->whereIn('id', $supplierIds)->forceDelete();
-
-        User::where('email', 'like', 'supplier%@test.com')->forceDelete();
+        // Hapus data lama pake raw DB biar pasti bersih
+        DB::table('distributor_contracts')->whereIn('contract_code', array_column($this->contracts, 'code'))->delete();
+        DB::table('suppliers')->where('email', 'like', '%@test.com')->delete();
+        DB::table('users')->where('email', 'like', 'supplier%')->delete();
 
         foreach ($this->contracts as $data) {
             $tenantId = (string) Str::uuid();
+            $email = 'supplier' . ((int) substr($data['code'], 2)) . '@test.com';
 
-            // Step 1: Register user as pembeli (tanpa tenant_id)
+            // Step 1: Register user as pembeli
             $user = User::create([
                 'name' => $data['contact'],
-                'email' => 'supplier' . ((int) substr($data['code'], 2)) . '@test.com',
+                'email' => $email,
                 'role' => 'pembeli',
-                'password' => 'password',
+                'password' => Hash::make('password'),
                 'email_verified_at' => now(),
             ]);
 
-            // Step 2: Register supplier (status pending, tanpa tenant_id)
+            // Step 2: Register supplier (status pending)
             $supplier = Supplier::withoutGlobalScope('tenant')->create([
                 'user_id' => $user->id,
                 'company_name' => $data['supplier'],
@@ -293,7 +288,7 @@ class SupplierContractSeeder extends Seeder
                 'tenant_id' => $tenantId,
             ]);
 
-            $this->command->info("Created: {$data['code']} - {$data['supplier']} (via register→approve flow)");
+            $this->command->info("Created: {$data['code']} - {$data['supplier']}");
         }
 
         $this->command->info('');
