@@ -73,7 +73,11 @@ class ContractEncryptionService
 
     public function decryptFile(string $filePath, string $keyHash): string
     {
-        $encryptedData = Storage::get($filePath);
+        // Try contracts disk first, fallback to default storage
+        $encryptedData = Storage::disk('contracts')->get($filePath);
+        if ($encryptedData === null) {
+            $encryptedData = Storage::get($filePath);
+        }
         if ($encryptedData === null) {
             throw new \RuntimeException('File not found');
         }

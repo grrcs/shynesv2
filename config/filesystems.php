@@ -47,6 +47,13 @@ return [
             'report' => false,
         ],
 
+        'contracts' => [
+            'driver' => 'local',
+            'root' => storage_path('contracts'),
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

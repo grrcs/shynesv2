@@ -5,8 +5,10 @@ namespace Database\Seeders;
 use App\Models\User;
 use App\Models\Supplier;
 use App\Models\DistributorContract;
+use App\Services\ContractEncryptionService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class SupplierContractSeeder extends Seeder
@@ -231,10 +233,13 @@ class SupplierContractSeeder extends Seeder
 
     public function run(): void
     {
-        // Hapus data lama (urut: contracts -> suppliers -> users)
+        // Hapus data lama & file kontrak
         DistributorContract::whereIn('contract_code', array_column($this->contracts, 'code'))->delete();
         Supplier::withoutGlobalScope('tenant')->where('email', 'like', '%@test.com')->delete();
         User::where('email', 'like', 'supplier%')->delete();
+        Storage::disk('contracts')->deleteDirectory('suppliers');
+
+        $encryptionService = app(ContractEncryptionService::class);
 
         foreach ($this->contracts as $data) {
             $tenantId = (string) Str::uuid();
@@ -272,7 +277,31 @@ class SupplierContractSeeder extends Seeder
                 'tenant_id' => $tenantId,
             ]);
 
-            // Step 4: Create distributor contract
+            // Step 4: Buat file kontrak terenkripsi
+            $contractJson = json_encode([
+                'contract_code' => $data['code'],
+                'supplier' => [
+                    'company_name' => $data['supplier'],
+                    'contact_person' => $data['contact'],
+                    'email' => $data['email'],
+                    'phone' => $data['phone'],
+                    'address' => $data['address'],
+                ],
+                'distributor' => $data['distributor'],
+                'distributor_contact' => $data['distributor_contact'],
+                'contract_period' => [
+                    'start' => $data['start'],
+                    'end' => $data['end'],
+                ],
+                'contract_value' => $data['value'],
+                'status' => $data['status'],
+            ], JSON_PRETTY_PRINT);
+
+            $encrypted = $encryptionService->encrypt($contractJson, $tenantId);
+            $filePath = 'suppliers/' . $data['code'] . '.enc';
+            Storage::disk('contracts')->put($filePath, $encrypted['encrypted']);
+
+            // Step 5: Create distributor contract
             DistributorContract::create([
                 'contract_code' => $data['code'],
                 'supplier_id' => $supplier->id,
@@ -282,8 +311,8 @@ class SupplierContractSeeder extends Seeder
                 'contract_end_date' => $data['end'],
                 'contract_value' => $data['value'],
                 'status' => $data['status'],
-                'file_path' => 'contracts/suppliers/' . $data['code'] . '.json',
-                'encryption_key_hash' => hash('sha256', 'seed-' . $tenantId),
+                'file_path' => $filePath,
+                'encryption_key_hash' => $encrypted['key_hash'],
                 'tenant_id' => $tenantId,
             ]);
 
