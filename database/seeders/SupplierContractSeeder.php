@@ -235,10 +235,9 @@ class SupplierContractSeeder extends Seeder
 
     public function run(): void
     {
-        // Hapus data lama (hard delete + reset auto-increment)
+        // Reset data lama (truncate resets auto-increment)
         Schema::disableForeignKeyConstraints();
-        DB::table('distributor_contracts')->whereIn('contract_code', array_column($this->contracts, 'code'))->delete();
-        DB::statement('ALTER TABLE distributor_contracts AUTO_INCREMENT = 1');
+        DB::table('distributor_contracts')->truncate();
         Supplier::withoutGlobalScope('tenant')->where('email', 'like', '%@test.com')->delete();
         User::where('email', 'like', 'supplier%')->delete();
         Schema::enableForeignKeyConstraints();
