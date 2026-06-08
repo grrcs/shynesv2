@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Models\Supplier;
 use App\Models\DistributorContract;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -232,10 +231,10 @@ class SupplierContractSeeder extends Seeder
 
     public function run(): void
     {
-        // Hapus data lama pake raw DB biar pasti bersih
-        DB::table('distributor_contracts')->whereIn('contract_code', array_column($this->contracts, 'code'))->delete();
-        DB::table('suppliers')->where('email', 'like', '%@test.com')->delete();
-        DB::table('users')->where('email', 'like', 'supplier%')->delete();
+        // Hapus data lama (urut: contracts -> suppliers -> users)
+        DistributorContract::whereIn('contract_code', array_column($this->contracts, 'code'))->delete();
+        Supplier::withoutGlobalScope('tenant')->where('email', 'like', '%@test.com')->delete();
+        User::where('email', 'like', 'supplier%')->delete();
 
         foreach ($this->contracts as $data) {
             $tenantId = (string) Str::uuid();
