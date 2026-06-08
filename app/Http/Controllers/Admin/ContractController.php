@@ -84,6 +84,7 @@ class ContractController extends Controller
             'contract_end_date' => $validated['contract_end_date'],
             'contract_value' => $validated['contract_value'],
             'file_path' => $filePath,
+            'encrypted_data' => $encrypted['encrypted'],
             'encryption_key_hash' => $encrypted['key_hash'],
             'tenant_id' => $tenantId,
         ]);
@@ -127,7 +128,8 @@ class ContractController extends Controller
         try {
             $decrypted = $this->encryptionService->decryptFile(
                 $contract->file_path,
-                $contract->encryption_key_hash
+                $contract->encryption_key_hash,
+                $contract->encrypted_data
             );
 
             return response()->streamDownload(function () use ($decrypted) {

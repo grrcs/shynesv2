@@ -277,7 +277,7 @@ class SupplierContractSeeder extends Seeder
                 'tenant_id' => $tenantId,
             ]);
 
-            // Step 4: Buat file kontrak terenkripsi
+            // Step 4: Buat file kontrak terenkripsi & simpan di DB
             $contractJson = json_encode([
                 'contract_code' => $data['code'],
                 'supplier' => [
@@ -312,6 +312,7 @@ class SupplierContractSeeder extends Seeder
                 'contract_value' => $data['value'],
                 'status' => $data['status'],
                 'file_path' => $filePath,
+                'encrypted_data' => $encrypted['encrypted'],
                 'encryption_key_hash' => $encrypted['key_hash'],
                 'tenant_id' => $tenantId,
             ]);

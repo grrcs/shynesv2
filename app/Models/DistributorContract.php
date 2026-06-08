@@ -20,6 +20,7 @@ class DistributorContract extends Model
         'contract_value',
         'status',
         'file_path',
+        'encrypted_data',
         'encryption_key_hash',
         'tenant_id',
     ];
